@@ -114,16 +114,16 @@ parameter
 
     wire [9:0]               o2_posx;
     wire [8:0]               o2_posy;
-    wire [9:0]               o2_width = 320;
-    wire [8:0]               o2_height = 240;
+    wire [9:0]               o2_width = 100;
+    wire [8:0]               o2_height = 80;
     wire [depth_bit - 1 : 0] o2_addr = 26000;
 
     objectMotion OBJ2(
         .clk(Div[0]),
         .width(o2_width),
         .height(o2_height),
-        .initposx(100),
-        .initposy(50),
+        .initposx(320),
+        .initposy(240),
         .Tx(T0 >> 7),
         .Ty(T0 >> 8),
         .dx(1),

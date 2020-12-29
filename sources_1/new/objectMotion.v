@@ -36,18 +36,44 @@ module objectMotion(
     );
 
     wire oob;
+    wire flagx;
+    wire flagy;
+    reg tdx;
+    reg tdy;
+    
     objectTransition OBJT(
         .clk(clk),
-        .rst(oob),
+        .rst(0),
         .Tx(Tx),
         .Ty(Ty),
-        .dx(dx),
-        .dy(dy),
+        .dx(tdx),
+        .dy(tdy),
         .initPosX(initposx),
         .initPosY(initposy),
         
         .posx(posx),
         .posy(posy));    
+
+    
+    initial begin
+        tdx = dx;
+        tdy = dy;
+    end
+
+    reg [1:0] oob_sample;
+
+    always @ (posedge clk) begin
+        oob_sample <= {oob_sample[0], oob};
+    end
+
+    always @ (posedge clk) begin
+        if(oob_sample == 2'b01) begin
+            if(flagx) 
+                tdx <= ~tdx;
+            else 
+                tdy <= ~tdy;
+        end
+    end
 
     objectOutOfBound OOOB(
         .clk(clk),
@@ -56,7 +82,9 @@ module objectMotion(
         .width(width),
         .height(height),
 
-        .flag_out(oob)
+        .flag_out(oob),
+        .flagx_out(flagx),
+        .flagy_out(flagy)
     );
          
 endmodule

@@ -27,7 +27,9 @@ module objectOutOfBound(
     input [9:0] width,
     input [8:0] height,
 
-    output flag_out
+    output flag_out,
+    output flagx_out,
+    output flagy_out
     );
     parameter 
         window_width = 640,
@@ -36,6 +38,8 @@ module objectOutOfBound(
         row_neg_det = 500;
 
     reg flagx, flagy;
+    assign flagx_out = flagx;
+    assign flagy_out = flagy;
 
     always @ (posedge clk) begin
         if(posx + width - 1 > col_neg_det || posx > window_width) begin
