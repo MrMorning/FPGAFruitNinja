@@ -28,8 +28,18 @@ module top(
     output HS,
     output VS
     );
-    
+
+parameter
+    depth_bit = 19;
+
+    wire [31:0] T0 = 50000000;
+
     wire [11:0] data;
+    wire [11:0] databg;
+    wire [11:0] datao1;
+    wire [11:0] datao2;
+    wire [11:0] datao;
+
     wire [8:0] row;
     wire [9:0] col;
     wire rdn;
@@ -42,86 +52,125 @@ module top(
     clkdiv M3(
         .clk(clk),
         .rst(0),
-        .clkdiv(Div)); 
+        .clkdiv(Div)
+    ); 
     
-    VGA M1(.clk(Div[1]),
-           .Din(data),
-           .row(row), 
-           .col(col), 
-           .rdn(rdn), 
-           .R(VGA_R), 
-           .G(VGA_G), 
-           .B(VGA_B),
-           .HS(HS), 
-           .VS(VS));
-     
-//     VGADEMO M2(.clk(Div[0]),
-//            .row(row),
-//            .col(col),
-//            .vga_data(data));
+    VGA M1(
+        .clk(Div[1]),
+        .Din(data),
+        .row(row), 
+        .col(col), 
+        .rdn(rdn), 
+        .R(VGA_R), 
+        .G(VGA_G), 
+        .B(VGA_B),
+        .HS(HS), 
+        .VS(VS)
+    );
 
-    wire [9:0] initposx = 0;
-    wire [8:0] initposy = 0;
-//    wire [9:0] posx = 0;
-//    wire [8:0] posy = 0;
-    wire [9:0] width = 100;
-    wire [8:0] height = 80;
-    wire [12:0] addr = 0;
-    wire [3:0] scaleX = 1;
-    wire [3:0] scaleY = 1;
-    wire [31:0] T0 = 50000000;
-    wire [31:0] Tx = T0 >> 5;
-    wire [31:0] Ty = T0 >> 6;
+    wire [9:0] bgwidth = 100;
+    wire [8:0] bgheight = 100;
+    wire [depth_bit - 1:0] addr = 0;
+
     wire dx = 1;
     wire dy = 1;
     wire oob;
-    
-    wire [9:0] posx;
-    wire [8:0] posy;
 
-    displayObj DISP(
+    wire [9:0] o1_posx;
+    wire [8:0] o1_posy;
+    wire [9:0] o1_width = 100;
+    wire [8:0] o1_height = 80;
+    wire [depth_bit - 1 : 0] o1_addr = 18000;
+
+    objectMotion OBJ1(
+        .clk(Div[0]),
+        .width(o1_width),
+        .height(o1_height),
+        .initposx(0),
+        .initposy(0),
+        .Tx(T0 >> 5),
+        .Ty(T0 >> 6),
+        .dx(1),
+        .dy(1),
+
+        .posx(o1_posx),
+        .posy(o1_posy)
+    );
+
+    displayObj #(.memory_depth_base(depth_bit)) DISP(
         .clk(Div[0]),
         .en(1),  
         .col(col),
         .row(row),
-        .posx(posx),
-        .posy(posy),
-        .width(width),
-        .height(height),
-        .memory_start_addr(addr),
-        .scaleX(scaleX),
-        .scaleY(scaleY),
-        .vga_data(data));
-                  
-              
-    objectTransition OBJT(
-        .clk(Div[0]),
-        .rst(oob),
-        .Tx(Tx),
-        .Ty(Ty),
-        .dx(dx),
-        .dy(dy),
-        .initPosX(initposx),
-        .initPosY(initposy),
-        
-        .posx(posx),
-        .posy(posy));    
-
-    objectOutOfBound OOOB(
-        .clk(Div[0]),
-        .posx(posx),
-        .posy(posy),
-        .width(width),
-        .height(height),
-
-        .flag_out(oob)
+        .posx(o1_posx),
+        .posy(o1_posy),
+        .width(o1_width),
+        .height(o1_height),
+        .memory_start_addr(o1_addr),
+        .scaleX(1),
+        .scaleY(1),
+        .vga_data(datao1)
     );
-              
-              
-                      
-           
-      
-        
-     
+
+    wire [9:0]               o2_posx;
+    wire [8:0]               o2_posy;
+    wire [9:0]               o2_width = 320;
+    wire [8:0]               o2_height = 240;
+    wire [depth_bit - 1 : 0] o2_addr = 26000;
+
+    objectMotion OBJ2(
+        .clk(Div[0]),
+        .width(o2_width),
+        .height(o2_height),
+        .initposx(100),
+        .initposy(50),
+        .Tx(T0 >> 7),
+        .Ty(T0 >> 8),
+        .dx(1),
+        .dy(0),
+
+        .posx(o2_posx),
+        .posy(o2_posy)
+    );
+
+    displayObj #(.memory_depth_base(depth_bit)) DISO2(
+        .clk(Div[0]),
+        .en(1),  
+        .col(col),
+        .row(row),
+        .posx             (o2_posx),
+        .posy             (o2_posy),
+        .width            (o2_width),
+        .height           (o2_height),
+        .memory_start_addr(o2_addr),
+        .scaleX(1),
+        .scaleY(1),
+        .vga_data(datao2)
+    );
+       
+    displayBg #(.memory_depth_base(depth_bit)) DISB(
+        .clk(Div[0]),
+        .en(1),
+        .col(col),
+        .row(row),
+        .width(bgwidth),
+        .height(bgheight),
+        .memory_start_addr(addr),
+
+        .vga_data(databg)
+    );
+
+    mixTwoFrame MIXER(
+        datao1,
+        datao2,
+        datao
+    );
+
+    mixObjectBg MIXER2(
+        .databg(databg),
+        .datao(datao),
+        .data(data)
+    );
+
     
 endmodule

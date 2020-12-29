@@ -1,16 +1,15 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: Chen Geng
+// Engineer: 
 // 
-// Create Date: 2020/12/28 12:19:44
+// Create Date: 2020/12/29 16:09:16
 // Design Name: 
-// Module Name: displayObj
+// Module Name: displayBg
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
 // Description: 
-//   This module is designed to get a object from memory and display it on vga
 // 
 // Dependencies: 
 // 
@@ -21,18 +20,14 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module displayObj(
+module displayBg(
     input clk,
     input en,
     input [9:0] col,
     input [8:0] row, //current displayed position
-    input [9:0] posx,
-    input [8:0] posy, //object position left top
     input [9:0] width,
-    input [8:0] height, //object size
+    input [8:0] height, //background size
     input [memory_depth_base - 1: 0] memory_start_addr,
-    input [3:0] scaleX,
-    input [3:0] scaleY, //support the scaling of object
 
     output reg [11:0] vga_data
     );
@@ -49,16 +44,10 @@ parameter
     
 
     always @ (posedge clk) begin
-        if(!en || col < posx || col >= posx + width || row < posy || row >= posy + height) begin
-            vga_data <= 12'h000;
-        end
-        else begin
-            relx <= col - posx;
-            rely <= row - posy;
-            reladdr <= rely * width + relx;
-            vga_data <= wire_data;
-            //TODO: add scaling       
-        end
+        relx <= col % width;
+        rely <= row % height;
+        reladdr <= rely * width + relx;
+        vga_data <= wire_data;
     end
 
     memoryRead M1(.clk(clk),
