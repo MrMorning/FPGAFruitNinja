@@ -39,7 +39,10 @@ module top(
     
     assign rst = 0;
     
-    clkdiv M3(.clk(clk), .clkdiv(Div)); 
+    clkdiv M3(
+        .clk(clk),
+        .rst(0),
+        .clkdiv(Div)); 
     
     VGA M1(.clk(Div[1]),
            .Din(data),
@@ -59,30 +62,60 @@ module top(
 
     wire [9:0] initposx = 0;
     wire [8:0] initposy = 0;
-    wire [9:0] width = 30;
-    wire [8:0] height = 20;
-    wire [9:0] addr = 0;
+//    wire [9:0] posx = 0;
+//    wire [8:0] posy = 0;
+    wire [9:0] width = 100;
+    wire [8:0] height = 80;
+    wire [12:0] addr = 0;
     wire [3:0] scaleX = 1;
     wire [3:0] scaleY = 1;
-    wire [31:0] Tx = 5;
-    wire [31:0] Ty = 3;
+    wire [31:0] T0 = 50000000;
+    wire [31:0] Tx = T0 >> 5;
+    wire [31:0] Ty = T0 >> 6;
+    wire dx = 1;
+    wire dy = 1;
+    wire oob;
     
-    reg [9:0] posx = 0;
-    reg [8:0] posy = 0;
+    wire [9:0] posx;
+    wire [8:0] posy;
 
-    displayObj DISP(.clk(Div[0]),
-                  .col(col),
-                  .row(row),
-                  .posx(posx),
-                  .posy(posy),
-                  .width(width),
-                  .height(height),
-                  .memory_start_addr(addr),
-                  .scaleX(scaleX),
-                  .scaleY(scaleY),
+    displayObj DISP(
+        .clk(Div[0]),
+        .en(1),  
+        .col(col),
+        .row(row),
+        .posx(posx),
+        .posy(posy),
+        .width(width),
+        .height(height),
+        .memory_start_addr(addr),
+        .scaleX(scaleX),
+        .scaleY(scaleY),
+        .vga_data(data));
                   
-                  .vga_data(data));
-                  
+              
+    objectTransition OBJT(
+        .clk(Div[0]),
+        .rst(oob),
+        .Tx(Tx),
+        .Ty(Ty),
+        .dx(dx),
+        .dy(dy),
+        .initPosX(initposx),
+        .initPosY(initposy),
+        
+        .posx(posx),
+        .posy(posy));    
+
+    objectOutOfBound OOOB(
+        .clk(Div[0]),
+        .posx(posx),
+        .posy(posy),
+        .width(width),
+        .height(height),
+
+        .flag_out(oob)
+    );
               
               
                       

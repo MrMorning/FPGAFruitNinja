@@ -23,6 +23,7 @@
 
 module displayObj(
     input clk,
+    input en,
     input [9:0] col,
     input [8:0] row, //current displayed position
     input [9:0] posx,
@@ -38,7 +39,7 @@ module displayObj(
 
 parameter 
     memory_depth = 1024,
-    memory_depth_base = 10;
+    memory_depth_base = 13;
 
     reg [9:0] relx = 0;
     reg [8:0] rely = 0;
@@ -48,7 +49,7 @@ parameter
     
 
     always @ (posedge clk) begin
-        if(col < posx || col >= posx + width || row < posy || row >= posy + height) begin
+        if(!en || col < posx || col >= posx + width || row < posy || row >= posy + height) begin
             vga_data <= 12'h000;
         end
         else begin

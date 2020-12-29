@@ -28,7 +28,7 @@ module memoryRead(
     );
 parameter 
     width_base = 12,
-    depth_base = 10;
+    depth_base = 13;
     
 
     blk_mem_gen_0 M1 (
