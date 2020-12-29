@@ -55,6 +55,6 @@ module objectOutOfBound(
         end
     end
     
-    assign flag_out = flagx & flagy;
+    assign flag_out = flagx | flagy;
 
 endmodule
