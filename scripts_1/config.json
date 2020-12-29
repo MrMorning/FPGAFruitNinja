@@ -1,0 +1,28 @@
+{
+    "image_dir": "./imgs",
+    "coe_dir": "../coes_1/rom.coe",
+    "map_dir": "../coes_1/rom.json",
+    "images": [
+        {
+            "name": "bg.jpg",
+            "width": 100,
+            "height": 100,
+            "bg": true
+        },
+        {
+            "name": "apple.jpg",
+            "width": 100,
+            "height": 80
+        },
+        {
+            "name": "banana.jpg",
+            "width": 100,
+            "height": 80
+        },
+        {
+            "name": "watermelon.jpeg",
+            "width": 100,
+            "height": 80
+        }
+    ]
+}
