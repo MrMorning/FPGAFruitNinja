@@ -22,6 +22,8 @@
 
 module top(
     input clk,
+    input PS2_clk,
+    input PS2_data,
     output [3:0] VGA_R,
     output [3:0] VGA_G,
     output [3:0] VGA_B,
@@ -39,6 +41,11 @@ parameter
     wire [11:0] datao1;
     wire [11:0] datao2;
     wire [11:0] datao;
+
+    wire [7:0] keyData;
+    wire keyReady;
+    wire keyOverflow;
+    wire [3:0] keyCount;
 
     wire [8:0] row;
     wire [9:0] col;
@@ -75,6 +82,8 @@ parameter
     wire dx = 1;
     wire dy = 1;
     wire oob;
+    
+    
 
     wire [9:0] o1_posx;
     wire [8:0] o1_posy;
@@ -118,15 +127,17 @@ parameter
     wire [8:0]               o2_height = 80;
     wire [depth_bit - 1 : 0] o2_addr = 26000;
 
+
     objectMotion OBJ2(
         .clk(Div[0]),
+        .key(keyReady),
         .width(o2_width),
         .height(o2_height),
         .initposx(320),
         .initposy(240),
         .Tx(T0 >> 7),
         .Ty(T0 >> 8),
-        .dx(1),
+        .dx(o2_dx),
         .dy(0),
 
         .posx(o2_posx),
@@ -147,6 +158,9 @@ parameter
         .scaleY(1),
         .vga_data(datao2)
     );
+    
+    
+    
        
     displayBg #(.memory_depth_base(depth_bit)) DISB(
         .clk(Div[0]),
@@ -171,6 +185,23 @@ parameter
         .datao(datao),
         .data(data)
     );
+
+    
+
+    ps2_keyboard PS2(
+        .clk(Div[0]),
+        .clrn(1),
+        .ps2_clk(PS2_clk),
+        .ps2_data(PS2_data),
+        .rdn(0),
+
+        .data(keyData),
+        .ready(keyReady),
+        .overflow(keyOverflow),
+        .count(keyCount)
+    );
+    
+
 
     
 endmodule

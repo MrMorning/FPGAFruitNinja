@@ -22,6 +22,7 @@
 
 module objectMotion(
     input clk,
+    input key,
     input [9:0] width,
     input [8:0] height,
     input [9:0] initposx,
@@ -63,7 +64,7 @@ module objectMotion(
     reg [1:0] oob_sample;
 
     always @ (posedge clk) begin
-        oob_sample <= {oob_sample[0], oob};
+        oob_sample <= {oob_sample[0], oob|key};
     end
 
     always @ (posedge clk) begin

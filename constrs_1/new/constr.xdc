@@ -36,3 +36,9 @@ set_property IOSTANDARD  LVCMOS18  [get_ports clk]
 
 
 create_clock -name TM_CLK -period 10 -waveform {0 6.665} [get_ports clk]
+
+#PS2
+set_property LOC N18 [get_ports PS2_clk]
+set_property LOC M19 [get_ports PS2_data]
+set_property IOSTANDARD LVCMOS33 [get_ports PS2_clk]
+set_property IOSTANDARD LVCMOS33 [get_ports PS2_data]

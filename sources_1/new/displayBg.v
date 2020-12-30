@@ -47,7 +47,10 @@ parameter
         relx <= col % width;
         rely <= row % height;
         reladdr <= rely * width + relx;
-        vga_data <= wire_data;
+        if(en)
+            vga_data <= wire_data;
+        else
+            vga_data <= 12'h000;
     end
 
     memoryRead M1(.clk(clk),

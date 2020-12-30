@@ -11,6 +11,12 @@ module ps2_keyboard(
     output [3:0] count
 );
 
+    initial begin
+        count_reg = 0;
+        w_ptr = 0;
+        r_ptr = 0;
+        overflow_reg = 0;
+    end
     reg overflow_reg;
     reg [3:0] count_reg;
     reg [9:0] buffer;
@@ -35,7 +41,7 @@ module ps2_keyboard(
             overflow_reg <= 0;
         end
         else if(sampling) begin
-            if(count == 4'd10) begin
+            if(count_reg == 4'd10) begin
                 if((buffer[0] == 0) && 
                 (ps2_data)       &&
                 (^buffer[9:1])) begin
@@ -46,7 +52,7 @@ module ps2_keyboard(
                 count_reg <= 0;
             end
             else begin
-                buffer[count] <= ps2_data;
+                buffer[count_reg] <= ps2_data;
                 count_reg <= count_reg + 3'b1;
             end
         end
