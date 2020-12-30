@@ -61,6 +61,12 @@ parameter
         .rst(0),
         .clkdiv(Div)
     ); 
+
+    wire moveclk;
+    clock_100ms C100(
+        .clk(Div[0]),
+        .clk_100ms(moveclk)
+    );
     
     VGA M1(
         .clk(Div[1]),
@@ -93,6 +99,9 @@ parameter
 
     objectMotion OBJ1(
         .clk(Div[0]),
+        .moveclk(moveclk),
+        .keyReady(keyReady),
+        .keyData(keyData),
         .width(o1_width),
         .height(o1_height),
         .initposx(0),
@@ -128,17 +137,17 @@ parameter
     wire [depth_bit - 1 : 0] o2_addr = 26000;
 
 
-    objectMotion OBJ2(
+    objectEngine OBJ2(
         .clk(Div[0]),
-        .key(keyReady),
+        .keyReady(keyReady),
+        .moveclk(moveclk),
+        .keyData(keyData),
         .width(o2_width),
         .height(o2_height),
         .initposx(320),
         .initposy(240),
-        .Tx(T0 >> 7),
-        .Ty(T0 >> 8),
-        .dx(o2_dx),
-        .dy(0),
+        .vx(1),
+        .vy(1),
 
         .posx(o2_posx),
         .posy(o2_posy)

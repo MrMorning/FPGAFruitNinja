@@ -22,7 +22,9 @@
 
 module objectMotion(
     input clk,
-    input key,
+    input keyReady,
+    input [7:0] keyData, 
+    input moveclk,
     input [9:0] width,
     input [8:0] height,
     input [9:0] initposx,
@@ -41,19 +43,29 @@ module objectMotion(
     wire flagy;
     reg tdx;
     reg tdy;
+
+    wire [1:0] ndx;
+    wire [1:0] ndy;
+
+    assign ndx[1] = 1;
+    assign ndy[1] = 1;
+    assign ndx[0] = tdx;
+    assign ndy[0] = tdy;
     
     objectTransition OBJT(
         .clk(clk),
         .rst(0),
-        .Tx(Tx),
-        .Ty(Ty),
-        .dx(tdx),
-        .dy(tdy),
+        .moveclk(moveclk),
+        .vx(1),
+        .vy(1),
+        .dx(ndx),
+        .dy(ndy),
         .initPosX(initposx),
         .initPosY(initposy),
         
         .posx(posx),
-        .posy(posy));    
+        .posy(posy)
+    );    
 
     
     initial begin
@@ -62,9 +74,11 @@ module objectMotion(
     end
 
     reg [1:0] oob_sample;
+    reg [1:0] key_sample;
 
     always @ (posedge clk) begin
-        oob_sample <= {oob_sample[0], oob|key};
+        oob_sample <= {oob_sample[0], oob};
+        key_sample <= {key_sample[0], keyReady};
     end
 
     always @ (posedge clk) begin
@@ -73,6 +87,15 @@ module objectMotion(
                 tdx <= ~tdx;
             else 
                 tdy <= ~tdy;
+        end
+        if(key_sample == 2'b01) begin
+            case (keyData)
+                8'h1D: tdy <= 0; 
+                8'h1B: tdy <= 1;
+                8'h1C: tdx <= 0;
+                8'h23: tdx <= 1;
+                default: ;
+            endcase
         end
     end
 

@@ -23,12 +23,13 @@
 module objectTransition(
     input clk,
     input rst,
-    input [31:0] Tx,
-    input [31:0] Ty,
+    input moveclk,
     input [9:0] initPosX,
     input [8:0] initPosY,
-    input dx,
-    input dy,   // dx = 1, inc, dx = 0, dec
+    input [9:0] vx,
+    input [8:0] vy,
+    input [1:0] dx,
+    input [1:0] dy,   // dx = 1, inc, dx = 0, dec
     
     output reg [9:0] posx,
     output reg [8:0] posy
@@ -39,75 +40,29 @@ module objectTransition(
         posy = initPosY;
     end
     
-    reg [31:0] counterX = 0;
-    reg [31:0] counterY = 0;
-    reg signalX = 0;
-    reg signalY = 0;
-
-
-    
-    
     always @ (posedge clk) begin
         if(rst) begin
-            counterX <= 0;
-            signalX <= 0;
             posx <= initPosX;
-        end
-        else begin 
-            if(counterX == Tx - 1) begin
-                counterX <= 0;
-                signalX <= 1;
-            end
-            else begin
-                counterX <= counterX + 1;
-                signalX <= 0;
-            end
-            if(signalX) begin
-                case (dx)
-                    1'b1 : posx <= posx + 1; 
-                    1'b0 : posx <= posx - 1;
-                endcase
-            end
-        end
-    end
-
-    always @ (posedge clk) begin
-        if(rst) begin
-            counterY <= 0;
-            signalY <= 0;
             posy <= initPosY;
         end
         else begin 
-            if(counterY == Ty - 1) begin
-                counterY <= 0;
-                signalY <= 1;
-            end
-            else begin
-                counterY <= counterY + 1;
-                signalY <= 0;
-            end 
-            if(signalY) begin
-                case (dy)
-                    1'b1: posy <= posy + 1;
-                    1'b0: posy <= posy - 1;
+            if(moveclk) begin
+                case(dx)
+                    2'b00: posx <= posx;
+                    2'b01: posx <= posx;
+                    2'b10: posx <= posx - vx;
+                    2'b11: posx <= posx + vx; 
+                endcase
+                case(dy)
+                    2'b00: posy <= posy;
+                    2'b01: posy <= posy;
+                    2'b10: posy <= posy - vy;
+                    2'b11: posy <= posy + vy;
                 endcase
             end
-        end  
+        end
     end
 
-    // always @ (posedge signalX) begin
-    //     case (dx)
-    //         1'b1 : posx <= posx + 1; 
-    //         1'b0 : posx <= posx - 1;
-    //     endcase
-    // end
-
-    // always @ (posedge signalY) begin
-    //     case (dy)
-    //         1'b1: posy <= posy + 1;
-    //         1'b0: posy <= posy - 1;
-    //     endcase
-    // end
 
 
 endmodule
