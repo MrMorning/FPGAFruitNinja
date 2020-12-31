@@ -22,8 +22,8 @@
 
 module top(
     input clk,
-    input PS2_clk,
-    input PS2_data,
+    inout PS2_clk,
+    inout PS2_data,
     output [3:0] VGA_R,
     output [3:0] VGA_G,
     output [3:0] VGA_B,
@@ -51,6 +51,13 @@ parameter
     wire [9:0] col;
     wire rdn;
     wire [31:0] Div;
+
+    wire [9:0] mousevx;
+    wire [8:0] mousevy;
+    wire mousedx;
+    wire mousedy;
+    wire mousepush;
+    wire decodeReady;
     
     wire rst;
     
@@ -137,17 +144,35 @@ parameter
     wire [depth_bit - 1 : 0] o2_addr = 26000;
 
 
-    objectEngine OBJ2(
+    // objectEngine OBJ2(
+    //     .clk(Div[0]),
+    //     .keyReady(keyReady),
+    //     .moveclk(moveclk),
+    //     .keyData(keyData),
+    //     .width(o2_width),
+    //     .height(o2_height),
+    //     .initposx(320),
+    //     .initposy(240),
+    //     .vx(1),
+    //     .vy(1),
+
+    //     .posx(o2_posx),
+    //     .posy(o2_posy)
+    // );
+
+    objectMouseMove OBJ2(
         .clk(Div[0]),
-        .keyReady(keyReady),
+        .mouseReady(mouseReady),
+        .vx(mousevx),
+        .vy(mousevy),
+        .dx(mousedx),
+        .dy(mousedy),
+        .mousepush(mousepush),
         .moveclk(moveclk),
-        .keyData(keyData),
         .width(o2_width),
         .height(o2_height),
         .initposx(320),
         .initposy(240),
-        .vx(1),
-        .vy(1),
 
         .posx(o2_posx),
         .posy(o2_posy)
@@ -168,12 +193,11 @@ parameter
         .vga_data(datao2)
     );
     
-    
-    
        
+    reg bgen = 0;
     displayBg #(.memory_depth_base(depth_bit)) DISB(
         .clk(Div[0]),
-        .en(1),
+        .en(bgen),
         .col(col),
         .row(row),
         .width(bgwidth),
@@ -195,22 +219,64 @@ parameter
         .data(data)
     );
 
+    assign keyData = 0;
+    assign keyReady = 0;
+
+    // ps2_keyboard PS2K(
+    //     .clk(Div[0]),
+    //     .clrn(1),
+    //     .ps2_clk(PS2_clk),
+    //     .ps2_data(PS2_data),
+    //     .rdn(0),
+
+    //     .data(keyData),
+    //     .ready(keyReady),
+    //     .overflow(keyOverflow),
+    //     .count(keyCount)
+    // );
+
+    wire [7:0] mouseData;
+    wire       mouseReady;
+    wire [3:0] mouseState;
     
 
-    ps2_keyboard PS2(
+    ps2_mouse PS2M(
         .clk(Div[0]),
         .clrn(1),
         .ps2_clk(PS2_clk),
         .ps2_data(PS2_data),
-        .rdn(0),
 
-        .data(keyData),
-        .ready(keyReady),
-        .overflow(keyOverflow),
-        .count(keyCount)
+        .data(mouseData),
+        .ready(mouseReady),
+        .state(mouseState)
+    );
+
+
+    mouseDecoder MOUD(
+        .clk(Div[0]),
+        .mouseReady(mouseReady),
+        .mouseData(mouseData),
+        .mouseState(mouseState),
+        .moveclk(moveclk),
+
+        .decodeReady(decodeReady),
+        .mousevx(mousevx),
+        .mousevy(mousevy),
+        .mousedx(mousedx),
+        .mousedy(mousedy),
+        .mousepush(mousepush)
     );
     
+    reg [1:0] mousepush_sample;
+    always @ (posedge clk) begin
+        mousepush_sample <= {mousepush_sample[0], mousepush};
+    end
 
+    always @ (posedge clk) begin
+        if(mousepush_sample == 2'b01) begin
+            bgen <= ~bgen;     
+        end
+    end
 
     
 endmodule
