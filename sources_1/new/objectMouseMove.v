@@ -47,8 +47,8 @@ module objectMouseMove(
     end
 
     always @ (posedge clk) begin
-        tdx <= {vx[0], dx};
-        tdy <= {vy[0], dy};
+        tdx <= {|vx, dx};
+        tdy <= {|vy, dy};
     end
 
     objectTransition OBJT(

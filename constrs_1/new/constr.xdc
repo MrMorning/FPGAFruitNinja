@@ -42,3 +42,17 @@ set_property LOC N18 [get_ports PS2_clk]
 set_property LOC M19 [get_ports PS2_data]
 set_property IOSTANDARD LVCMOS33 [get_ports PS2_clk]
 set_property IOSTANDARD LVCMOS33 [get_ports PS2_data]
+
+#SEGMENT
+set_property LOC M24 [get_ports SEGCLK]
+set_property LOC M20 [get_ports SEGCLR]
+set_property LOC L24 [get_ports SEGDT]
+set_property LOC R18 [get_ports SEGEN]
+
+set_property IOSTANDARD LVCMOS33 [get_ports SEGCLK]
+set_property IOSTANDARD LVCMOS33 [get_ports SEGCLR]
+set_property IOSTANDARD LVCMOS33 [get_ports SEGDT]
+set_property IOSTANDARD LVCMOS33 [get_ports SEGEN]
+
+set_property LOC W13             [get_ports rstn]
+set_property IOSTANDARD LVCMOS18 [get_ports rstn]

@@ -26,8 +26,8 @@ module ps2_mouse(
     inout ps2_clk,
     inout ps2_data,
 
-    output [7:0] data,
-    output wire ready,
+    output reg [7:0] data,
+    output reg ready,
     output reg [3:0] state
 );
 
@@ -137,10 +137,12 @@ module ps2_mouse(
                         end
                     end
                     else if(receive_count >= 4'd1 && receive_count <= 4'd8) begin
+                        ready <= 0;
                         receive_buffer[receive_count] = ps2_data;
                         receive_count <= receive_count + 1;
                     end
                     else if(receive_count == 4'd9) begin
+                        ready <= 0;
                         if((^receive_buffer[8:1]) ^ ps2_data) begin // odd parity
                             receive_buffer[receive_count] = ps2_data;
                             receive_count <= receive_count + 1;
@@ -152,13 +154,17 @@ module ps2_mouse(
                     else if(receive_count == 4'd10) begin
                         if(ps2_data != 1'b1) begin
                             receive_count <= 0;
+                            ready <= 0;
                         end
                         else begin
                             receive_count <= receive_count + 1;
+                            data <= receive_buffer[8:1];
+                            ready <= 1;
                         end
                     end
                     else begin
                         receive_count <= 0;
+                        ready <= 0;
                     end
                 end
                 else begin
@@ -172,8 +178,9 @@ module ps2_mouse(
         endcase
     end
 
-    assign ready = (state == 3) & (receive_count == 11);
-    assign data = ready ? receive_buffer[8:1] : 8'h00;
+    // assign ready = (state == 3) & (receive_count == 11);
+    // assign data = ready ? receive_buffer[8:1] : 8'h00;
+    // assign data = receive_buffer[8:1];
 
 ////////////////////////////////////
 

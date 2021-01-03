@@ -22,6 +22,7 @@
 
 module objectMotion(
     input clk,
+    input rstn,
     input keyReady,
     input [7:0] keyData, 
     input moveclk,
@@ -54,7 +55,7 @@ module objectMotion(
     
     objectTransition OBJT(
         .clk(clk),
-        .rst(0),
+        .rst(~rstn),
         .moveclk(moveclk),
         .vx(1),
         .vy(1),
