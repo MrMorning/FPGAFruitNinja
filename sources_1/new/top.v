@@ -25,6 +25,7 @@ module top(
     input rstn,
     input PS2_clk,
     input PS2_data,
+    input [15:0] SW,
     output [3:0] VGA_R,
     output [3:0] VGA_G,
     output [3:0] VGA_B,
@@ -294,6 +295,7 @@ parameter
 
     mouseDecoder MOUD(
         .clk(Div[0]),
+        .rst(~rstn),
         .mouseReady(mouseReady),
         .mouseData(mouseData),
         .mouseState(mouseState),
@@ -336,13 +338,14 @@ parameter
     // wire [8:0]  ndy = sy ? {1'b0,~y_increment[7:0]}+1 : {1'b0,y_increment[7:0]};
     
     reg [1:0] mousepush_sample;
+    reg [1:0] mouseready_sample;
     // assign mousevx = {9'b0, |(ndx[7:0])};
     // assign mousevy = {8'b0, |(ndy[7:0])};
     // assign mousedx = sx;
     // assign mousedy = sy;
     always @ (posedge clk) begin
         mousepush_sample <= {mousepush_sample[0], mousepush};
-        
+        mouseready_sample <= {mouseready_sample[0], mouseReady};
     end
 
     always @ (posedge clk) begin
@@ -353,18 +356,96 @@ parameter
 
     wire [31:0] hexdata_test = 32'hA5A5A5A5;
 
-    wire [31:0] hexdata = {
-        8'hA5 + {7'd0, Div[26]},
-        mouseY[7:0],
-        Div[10], mouseReady, mouseState[1:0], 
-        mousedy, mousedx, 1'b0, mousepush, 
-        mouseData
-    };
+    // wire [31:0] hexdata = {
+    //     8'hA5 + {7'd0, Div[26]},
+    //     mouseY[7:0],
+    //     Div[10], mouseReady, mouseState[1:0], 
+    //     mousedy, mousedx, 1'b0, mousepush, 
+    //     mouseData
+    // };
+
+    reg [7:0] data0, data1, data2, data3, data4, data5, data6, data7;
+
+    reg [3:0] hexstate;
+
+    always @ (posedge clk) begin
+        case(hexstate)
+            0: begin
+                if(mouseready_sample == 2'b01) begin
+                    hexstate <= 1;
+                    data0 <= mouseData;
+                end
+                else hexstate <= hexstate;
+            end
+            1: begin
+                if(mouseready_sample == 2'b01) begin
+                    hexstate <= 2;
+                    data1 <= mouseData;
+                end
+                else hexstate <= hexstate;
+            end 
+            2: begin
+                if(mouseready_sample == 2'b01) begin
+                    hexstate <= 3;
+                    data2 <= mouseData;
+                end
+                else hexstate <= hexstate;
+            end
+            3: begin
+                if(mouseready_sample == 2'b01) begin
+                    hexstate <= 4;
+                    data3 <= mouseData;
+                end
+                else hexstate <= hexstate;
+            end
+            4: begin
+                if(mouseready_sample == 2'b01) begin
+                    hexstate <= 5;
+                    data4 <= mouseData;
+                end
+                else hexstate <= hexstate;
+            end
+            5: begin
+                if(mouseready_sample == 2'b01) begin
+                    hexstate <= 6;
+                    data5 <= mouseData;
+                end
+                else hexstate <= hexstate;
+            end
+            6: begin
+                if(mouseready_sample == 2'b01) begin
+                    hexstate <= 7;
+                    data6 <= mouseData;
+                end
+                else hexstate <= hexstate;
+            end
+            7: begin
+                if(mouseready_sample == 2'b01) begin
+                    hexstate <= 8;
+                    data7 <= mouseData;
+                end
+                else hexstate <= hexstate;
+            end
+            8: begin
+                if(~rstn) begin
+                    hexstate <= 0;
+                end
+                else begin
+                    hexstate <= hexstate;
+                end
+            end
+        endcase
+    end
+
+    wire [31:0] hexdata1 = {data0, data1, data2, data3};
+    wire [31:0] hexdata2 = {data4, data5, data6, data7};
+
+    wire [31:0] HEXDATA = SW[0] ? hexdata1 : hexdata2;
 
     Display HEXS(
         .clk(Div[0]),
         .flash(0),
-        .Hexs(hexdata),
+        .Hexs(HEXDATA),
         .LES(8'hFF),
         .point(8'h00),
         .rst(0),

@@ -22,6 +22,7 @@
 
 module mouseDecoder(
     input clk,
+    input rst,
     input       mouseReady,
     input [7:0] mouseData,
     input [3:0] mouseState,
@@ -56,13 +57,21 @@ reg left;
 
 
 always @ (posedge clk) begin
-    if(mouse_sample == 2'b01) begin
+    if(rst) begin
+        left <= 0;
+        right <= 0;
+        middle <= 0;
+        X <= 0;
+        Y <= 0;
+        overflowX <= 0;
+        overflowY <= 0;
+        state <= 0;
+        mouse_sample <= 0;
+    end
+    else begin
         case(state)
             4'd0: begin
-                if(mouseData[3] != 1) begin
-                    state <= 4'd0;
-                end
-                else begin
+                if(mouse_sample == 2'b01) begin
                     left       <= mouseData[0];
                     right      <= mouseData[1];
                     middle     <= mouseData[2];
@@ -70,34 +79,43 @@ always @ (posedge clk) begin
                     Y[8]       <= mouseData[5];
                     overflowX  <= mouseData[6];
                     overflowY  <= mouseData[7];
-                    state <= 4'd1;
+                    state <= 4'd1;                     
+                end
+                else begin
+                    state <= state;
                 end
             end
             4'd1: begin
-                X[7:0] <= mouseData;
-                state <= 4'd2;
-            end
-            4'd2: begin
-                Y[7:0] <= mouseData;
-                state <= 4'd3;
-            end
-            4'd3: begin
-                Z[7:0] <= mouseData;
-                state <= 4'd4;
-            end
-            4'd4: begin
-                if(mouseData[3] != 1) begin
-                    state <= 4'd0;
+                if(mouse_sample == 2'b01) begin
+                    X[7:0] <= mouseData;
+                    state <= 4'd2;    
                 end
                 else begin
+                    state <= state;
+                end
+            end
+            4'd2: begin
+                if(mouse_sample == 2'b01) begin
+                    Y[7:0] <= mouseData;
+                    state <= 4'd3;
+                end
+                else begin
+                    state <= state;
+                end
+            end
+            4'd3: begin
+                if(mouse_sample == 2'b01) begin
                     left       <= mouseData[0];
                     right      <= mouseData[1];
                     middle     <= mouseData[2];
                     X[8]       <= mouseData[4];
                     Y[8]       <= mouseData[5];
                     overflowX  <= mouseData[6];
-                    overflowY  <= mouseData[7];
-                    state <= 4'd1;
+                    overflowY  <= mouseData[7]; 
+                    state <= 4'd1;    
+                end
+                else begin
+                    state <= state;
                 end
             end
             default: begin
@@ -105,28 +123,19 @@ always @ (posedge clk) begin
             end
         endcase
     end
-    else begin
-        // if(state == 4'd3) begin
-        //     if(holdstate == 2'b11) state <= 4'd0;
-        //     else state <= state;
-        // end
-        // else begin
-            state <= state;
-        // end
-    end
 end
 
-wire [8:0] Xn = {1'b0,~X[7:0]}+1;
-wire [8:0] Yn = {1'b0,~Y[7:0]}+1;
+wire [7:0] Xn = {1'b0,~X[6:0]}+1;
+wire [7:0] Yn = {1'b0,~Y[6:0]}+1;
 
-wire [7:0] tmpvx;
-wire [7:0] tmpvy;
+wire [6:0] tmpvx;
+wire [6:0] tmpvy;
 
 assign decodeReady = (state == 4'd3);
-assign mousedx = X[8];
-assign tmpvx = X[8] ? Xn[7:0] : X[7:0];
-assign mousedy = ~Y[8];
-assign tmpvy = Y[8] ? Yn[7:0] : Y[7:0];
+assign mousedx = X[7];
+assign tmpvx = X[7] ? Xn[6:0] : X[6:0];
+assign mousedy = ~Y[7];
+assign tmpvy = Y[7] ? Yn[6:0] : Y[6:0];
 
 assign mousepush = left;
 
@@ -142,7 +151,7 @@ always @ (posedge clk) begin
 end
 
 always @ (posedge clk) begin
-    if(state == 4'd4) begin
+    if(state == 4'd3) begin
         mousevx <= {9'b0, |tmpvx};
         mousevy <= {8'b0, |tmpvy};
     end
@@ -150,6 +159,7 @@ always @ (posedge clk) begin
         mousevx <= 0;
         mousevy <= 0;
     end
+    ////////////////
     // case(holdstate)
     //     2'b00: begin
     //         if(state == 4'd3) begin
