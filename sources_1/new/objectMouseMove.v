@@ -22,6 +22,7 @@
 
 module objectMouseMove(
     input clk,
+    input rstn,
     input mouseReady,
     input [9:0] vx,
     input [8:0] vy,
@@ -53,7 +54,7 @@ module objectMouseMove(
 
     objectTransition OBJT(
         .clk(clk),
-        .rst(0),
+        .rst(~rstn),
         .moveclk(moveclk),
         .initPosX(initposx),
         .initPosY(initposy),

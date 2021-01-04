@@ -33,8 +33,17 @@ module mouseDecoder(
     output reg [8:0] mousevy,
     output mousedx,
     output mousedy,
-    output [7:0] mouseX,
-    output [7:0] mouseY,
+    output [7:0] debugX,
+    output [7:0] debugY,
+    output debugLeft,
+    output debugRight,
+    output debugMiddle,
+    output debugX8,
+    output debugY8,
+    output debugOX,
+    output debugOY,
+    output reg [31:0] debugCount,
+    output [3:0] debugState,
     output wire mousepush
 );
 
@@ -55,7 +64,6 @@ reg middle;
 reg right;
 reg left;
 
-
 always @ (posedge clk) begin
     if(rst) begin
         left <= 0;
@@ -63,14 +71,16 @@ always @ (posedge clk) begin
         middle <= 0;
         X <= 0;
         Y <= 0;
-        overflowX <= 0;
-        overflowY <= 0;
+        overflowX <= 1;
+        overflowY <= 1;
         state <= 0;
         mouse_sample <= 0;
+        debugCount <= 0;
     end
     else begin
+        
         case(state)
-            4'd0: begin
+            0: begin
                 if(mouse_sample == 2'b01) begin
                     left       <= mouseData[0];
                     right      <= mouseData[1];
@@ -79,31 +89,34 @@ always @ (posedge clk) begin
                     Y[8]       <= mouseData[5];
                     overflowX  <= mouseData[6];
                     overflowY  <= mouseData[7];
-                    state <= 4'd1;                     
+                    state <= 1;                
+                    debugCount <= debugCount + 1;     
                 end
                 else begin
                     state <= state;
                 end
             end
-            4'd1: begin
+            1: begin
                 if(mouse_sample == 2'b01) begin
                     X[7:0] <= mouseData;
-                    state <= 4'd2;    
+                    state <= 2;    
+                    debugCount <= debugCount + 1;
                 end
                 else begin
                     state <= state;
                 end
             end
-            4'd2: begin
+            2: begin
                 if(mouse_sample == 2'b01) begin
                     Y[7:0] <= mouseData;
-                    state <= 4'd3;
+                    state <= 3;
+                    debugCount <= debugCount + 1;
                 end
                 else begin
                     state <= state;
                 end
             end
-            4'd3: begin
+            3: begin
                 if(mouse_sample == 2'b01) begin
                     left       <= mouseData[0];
                     right      <= mouseData[1];
@@ -112,14 +125,15 @@ always @ (posedge clk) begin
                     Y[8]       <= mouseData[5];
                     overflowX  <= mouseData[6];
                     overflowY  <= mouseData[7]; 
-                    state <= 4'd1;    
+                    state <= 1;    
+                    debugCount <= debugCount + 1;
                 end
                 else begin
                     state <= state;
                 end
             end
             default: begin
-                state <= 4'd0;
+                state <= 0;
             end
         endcase
     end
@@ -143,8 +157,16 @@ reg [1:0] holdstate;
 
 reg [1:0] moveclk_sample;
 
-assign mouseX = X[7:0];
-assign mouseY = Y[7:0];
+assign debugX = X[7:0];
+assign debugY = Y[7:0];
+assign debugLeft = left;
+assign debugRight = right;
+assign debugMiddle = middle;
+assign debugOX = overflowX;
+assign debugOY = overflowY;
+assign debugX8 = X[8];
+assign debugY8 = Y[8];
+assign debugState = state;
 
 always @ (posedge clk) begin
     moveclk_sample <= {moveclk_sample[0], moveclk};

@@ -44,6 +44,19 @@ module mouse_test(
     wire decodeReady;
     wire [7:0] mouseX, mouseY;
 
+    reg [1:0] mousepush_sample;
+    reg [1:0] mouseready_sample;
+    reg bgen;
+
+    always @ (posedge clk) begin
+        mousepush_sample <= {mousepush_sample[0], mousepush};
+    end
+
+    always @ (posedge clk) begin
+        if(mousepush_sample == 2'b01) begin
+            bgen <= ~bgen;     
+        end
+    end
 
     mouseDecoder MOUD(
         .clk(clk),
@@ -66,29 +79,30 @@ module mouse_test(
     initial begin
         clk = 0;
         rst = 1;
+        bgen = 0;
         mouseReady = 0;
         #20;
         rst = 0;
         #50;
-        mouseData = 8'h00;
+        mouseData = 8'h21;
         mouseReady = 1;
         #10;
         mouseReady = 0;
 
         #50;
-        mouseData = 8'h02;
+        mouseData = 8'hF0;
         mouseReady = 1;
         #10;
         mouseReady = 0;
 
         #50;
-        mouseData = 8'h03;
+        mouseData = 8'h21;
         mouseReady = 1;
         #10;
         mouseReady = 0;
 
         #50;
-        mouseData = 8'h00;
+        mouseData = 8'h01;
         mouseReady = 1;
         #10;
         mouseReady = 0;

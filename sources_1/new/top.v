@@ -22,7 +22,7 @@
 
 module top(
     input clk,
-    input rstn,
+    // input rstn,
     input PS2_clk,
     input PS2_data,
     input [15:0] SW,
@@ -98,6 +98,7 @@ parameter
     wire [9:0] bgwidth = 100;
     wire [8:0] bgheight = 100;
     wire [depth_bit - 1:0] addr = 0;
+    wire rstn = SW[15];
 
     wire dx = 1;
     wire dy = 1;
@@ -170,6 +171,7 @@ parameter
 
     objectMouseMove OBJ2(
         .clk(Div[0]),
+        .rstn(rstn),
         .mouseReady(mouseReady),
         .vx(mousevx),
         .vy(mousevy),
@@ -293,8 +295,20 @@ parameter
 
     wire [7:0] mouseX, mouseY;
 
+    wire [7:0] debugX;
+    wire [7:0] debugY;
+    wire debugLeft;
+    wire debugRight;
+    wire debugMiddle;
+    wire debugX8;
+    wire debugY8;
+    wire debugOX;
+    wire debugOY;
+    wire [3:0] debugState;
+    wire [31:0] debugCount;
+
     mouseDecoder MOUD(
-        .clk(Div[0]),
+        .clk(clk),
         .rst(~rstn),
         .mouseReady(mouseReady),
         .mouseData(mouseData),
@@ -306,8 +320,17 @@ parameter
         .mousevy(mousevy),
         .mousedx(mousedx),
         .mousedy(mousedy),
-        .mouseX(mouseX),
-        .mouseY(mouseY),
+        .debugX(debugX),
+        .debugY(debugY),
+        .debugLeft(debugLeft),
+        .debugRight(debugRight),
+        .debugMiddle(debugMiddle),
+        .debugX8(debugX8),
+        .debugY8(debugY8),
+        .debugOX(debugOX),
+        .debugOY(debugOY),
+        .debugState(debugState),
+        .debugCount(debugCount),
         .mousepush(mousepush)
     );
 
@@ -429,6 +452,14 @@ parameter
             8: begin
                 if(~rstn) begin
                     hexstate <= 0;
+                    data0    <= 0;
+                    data1    <= 0;
+                    data2    <= 0;
+                    data3    <= 0;
+                    data4    <= 0;
+                    data5    <= 0;
+                    data6    <= 0;
+                    data7    <= 0;
                 end
                 else begin
                     hexstate <= hexstate;
@@ -437,10 +468,21 @@ parameter
         endcase
     end
 
-    wire [31:0] hexdata1 = {data0, data1, data2, data3};
-    wire [31:0] hexdata2 = {data4, data5, data6, data7};
+    wire [31:0] hexdata0 = {data0, data1, data2, data3};
+    wire [31:0] hexdata1 = {data4, data5, data6, data7};
+    wire [31:0] hexdata2 = {3'b0, mousepush, debugState,debugY, debugX, debugOY, debugOX, debugY8, debugX8, 1'b0, debugMiddle, debugRight, debugLeft};
+    wire [31:0] hexdata3 = {debugCount};
 
-    wire [31:0] HEXDATA = SW[0] ? hexdata1 : hexdata2;
+    reg [31:0] HEXDATA;
+    always @ (posedge clk) begin
+        case({SW[2], SW[1], SW[0]}) 
+            0:       HEXDATA <= hexdata0;
+            1:       HEXDATA <= hexdata1;
+            2:       HEXDATA <= hexdata2;
+            3:       HEXDATA <= hexdata3;
+            default: HEXDATA <= hexdata_test;
+        endcase
+    end
 
     Display HEXS(
         .clk(Div[0]),

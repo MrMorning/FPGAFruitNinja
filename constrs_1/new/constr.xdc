@@ -54,8 +54,8 @@ set_property IOSTANDARD LVCMOS33 [get_ports SEGCLR]
 set_property IOSTANDARD LVCMOS33 [get_ports SEGDT]
 set_property IOSTANDARD LVCMOS33 [get_ports SEGEN]
 
-set_property LOC W13             [get_ports rstn]
-set_property IOSTANDARD LVCMOS18 [get_ports rstn]
+#set_property LOC W13             [get_ports rstn]
+#set_property IOSTANDARD LVCMOS18 [get_ports rstn]
 
 #SW
 set_property LOC AA10 [get_ports SW[0]]
