@@ -25,21 +25,22 @@ module objectMotion(
     input rstn,
     input moveen,
     input moveclk,
+    input accclk,
     input [9:0] width,
-    input [8:0] height,
+    input [9:0] height,
     input [9:0] initposx,
-    input [8:0] initposy,
+    input [9:0] initposy,
     input [9:0] initvx,
-    input [8:0] initvy,
+    input [9:0] initvy,
     input initdx,
     input initdy,
     input [9:0] ax,
-    input [8:0] ay,
+    input [9:0] ay,
     input [1:0] adx,
     input [1:0] ady,
     
     output [9:0] posx,
-    output [8:0] posy,
+    output [9:0] posy,
     output wire oob
     );
 
@@ -52,7 +53,7 @@ module objectMotion(
     wire [1:0] ndy;
 
     wire [9:0] vx;
-    wire [8:0] vy;
+    wire [9:0] vy;
     
     objectTransition OBJT(
         .clk(clk),
@@ -73,7 +74,7 @@ module objectMotion(
     objectAccelerate OBJV(
         .clk(clk),
         .rst(~rstn),
-        .moveclk(moveclk),
+        .accclk(accclk),
         .initvx(initvx),
         .initvy(initvy),
         .initvdx({1'b1, initdx}),

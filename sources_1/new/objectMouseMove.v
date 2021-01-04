@@ -25,18 +25,18 @@ module objectMouseMove(
     input rstn,
     input mouseReady,
     input [9:0] vx,
-    input [8:0] vy,
+    input [9:0] vy,
     input dx,
     input dy,
     input mousepush,
     input moveclk,
     input [9:0] width,
-    input [8:0] height,
+    input [9:0] height,
     input [9:0] initposx,
-    input [8:0] initposy,
+    input [9:0] initposy,
     
     output [9:0] posx,
-    output [8:0] posy
+    output [9:0] posy
     );
 
     reg [1:0] tdx;

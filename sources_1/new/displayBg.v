@@ -24,9 +24,9 @@ module displayBg(
     input clk,
     input en,
     input [9:0] col,
-    input [8:0] row, //current displayed position
+    input [9:0] row, //current displayed position
     input [9:0] width,
-    input [8:0] height, //background size
+    input [9:0] height, //background size
     input [memory_depth_base - 1: 0] memory_start_addr,
 
     output reg [11:0] vga_data
@@ -37,7 +37,7 @@ parameter
     memory_depth_base = 19;
 
     reg [9:0] relx = 0;
-    reg [8:0] rely = 0;
+    reg [9:0] rely = 0;
     reg [memory_depth_base - 1 : 0] reladdr;
     
     wire [11:0] wire_data;

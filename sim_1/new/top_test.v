@@ -30,15 +30,33 @@ module top_test(
         clk <= ~clk;
     end
     
+    reg [15:0] SW;
+    
+    wire SEGCLK, SEGDT, SEGEN, SEGCLR;
+    
     top U1(
-        clk,
-        VGA_R,
-        VGA_G,
-        VGA_B,
-        HS,
-        VS 
+        .clk(clk),
+        .PS2_clk(0),
+        .PS2_data(0),
+        .SW(SW),
+        .VGA_R(VGA_R),
+        .VGA_G(VGA_G),
+        .VGA_B(VGA_B),
+        .HS(HS),
+        .VS(VS), 
+        .SEGCLK(SEGCLK),
+        .SEGDT(SEGDT),
+        .SEGEN(SEGEN),
+        .SEGCLR(SEGCLR)
     );
-              
+    
+    initial begin
+        #10;
+        SW[15] = 0;
+        #200;
+        SW[15] = 1;
+        
+    end
                       
            
 endmodule

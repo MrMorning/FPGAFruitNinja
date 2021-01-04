@@ -23,9 +23,9 @@
 module objectOutOfBound(
     input clk,
     input [9:0] posx,
-    input [8:0] posy,
+    input [9:0] posy,
     input [9:0] width,
-    input [8:0] height,
+    input [9:0] height,
 
     output flag_out,
     output flagx_out,
@@ -35,14 +35,14 @@ module objectOutOfBound(
         window_width = 640,
         window_height = 480,
         col_neg_det = 900,
-        row_neg_det = 500;
+        row_neg_det = 900;
 
     reg flagx, flagy;
     assign flagx_out = flagx;
     assign flagy_out = flagy;
 
     always @ (posedge clk) begin
-        if(posx + width - 1 > col_neg_det || posx > window_width) begin
+        if(posx + width - 1 > col_neg_det || (posx > window_width && posx < col_neg_det)) begin
             flagx <= 1;
         end
         else begin
@@ -51,7 +51,7 @@ module objectOutOfBound(
     end
 
     always @ (posedge clk) begin
-        if(posy + height - 1 > row_neg_det || posy > window_height) begin
+        if(posy + height - 1 > row_neg_det || (posy > window_height && posy < row_neg_det)) begin
             flagy <= 1;
         end
         else begin

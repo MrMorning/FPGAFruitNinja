@@ -42,7 +42,7 @@
 module VGA(
     input clk,
     input [11:0] Din,
-    output reg [8:0] row,
+    output reg [9:0] row,
     output reg [9:0] col,
     output reg rdn,
     output reg [3:0] R, G, B,
@@ -76,7 +76,7 @@ module VGA(
                           (v_count < 10'd515);
 
     always @ (posedge clk) begin
-        row <= row_addr[8:0];
+        row <= row_addr;
         col <= col_addr;
         rdn <= ~read;
         HS  <= h_sync;

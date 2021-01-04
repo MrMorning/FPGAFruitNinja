@@ -26,14 +26,14 @@ module objectTransition(
     input rst,
     input moveclk,
     input [9:0] initPosX,
-    input [8:0] initPosY,
+    input [9:0] initPosY,
     input [9:0] vx,
-    input [8:0] vy,
+    input [9:0] vy,
     input [1:0] dx,
     input [1:0] dy,   // dx = 1, inc, dx = 0, dec
     
     output reg [9:0] posx,
-    output reg [8:0] posy
+    output reg [9:0] posy
     );
 
     initial begin

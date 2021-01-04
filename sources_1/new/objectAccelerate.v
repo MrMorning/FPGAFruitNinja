@@ -23,18 +23,18 @@
 module objectAccelerate(
     input clk,
     input rst,
-    input moveclk,
+    input accclk,
     input [9:0] initvx,
-    input [8:0] initvy,
+    input [9:0] initvy,
     input [1:0] initvdx,
     input [1:0] initvdy,
     input [9:0] ax,
-    input [8:0] ay,
+    input [9:0] ay,
     input [1:0] adx,
     input [1:0] ady,   // dx = 1, inc, dx = 0, dec
     
     output reg [9:0] vx,
-    output reg [8:0] vy,
+    output reg [9:0] vy,
     output reg [1:0] vdx,
     output reg [1:0] vdy
     );
@@ -47,7 +47,7 @@ module objectAccelerate(
             vdy <= initvdy;
         end
         else begin 
-            if(moveclk) begin
+            if(accclk) begin
                 case(adx)
                     2'b00: vx <= vx;
                     2'b01: vx <= vx;

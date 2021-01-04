@@ -39,7 +39,7 @@ module top(
     );
 
 parameter
-    depth_bit = 19;
+    depth_bit = 18;
 
     wire [31:0] T0 = 50000000;
 
@@ -54,17 +54,18 @@ parameter
     wire keyOverflow;
     wire [3:0] keyCount;
 
-    wire [8:0] row;
+    wire [9:0] row;
     wire [9:0] col;
     wire rdn;
     wire [31:0] Div;
 
     reg [9:0] mousevx;
-    reg [8:0] mousevy;
+    reg [9:0] mousevy;
     wire mousedx;
     wire mousedy;
     reg mousepush;
     wire decodeReady;
+    wire accclk;
     
     wire rst;
     
@@ -84,6 +85,10 @@ parameter
         .clk(Div[0]),
         .clk_100ms(moveclk)
     );
+    clock_acc CACC(
+        .clk(Div[0]),
+        .clk_acc(accclk)
+    );
     
     VGA M1(
         .clk(Div[1]),
@@ -99,7 +104,7 @@ parameter
     );
 
     wire [9:0] bgwidth = 100;
-    wire [8:0] bgheight = 100;
+    wire [9:0] bgheight = 100;
     wire [depth_bit - 1:0] addr = 0;
 
     wire dx = 1;
@@ -109,10 +114,10 @@ parameter
     
 
     wire [9:0] o1_posx;
-    wire [8:0] o1_posy;
+    wire [9:0] o1_posy;
     wire       o1_oob;
     wire [9:0] o1_width = 100;
-    wire [8:0] o1_height = 80;
+    wire [9:0] o1_height = 80;
     wire [depth_bit - 1 : 0] o1_addr = 18000;
 
     objectMotion OBJ1(
@@ -120,6 +125,7 @@ parameter
         .rstn(rstn),
         .moveen(1),
         .moveclk(moveclk),
+        .accclk(accclk),
         .width(o1_width),
         .height(o1_height),
         .initposx(100),
@@ -154,9 +160,9 @@ parameter
     );
 
     wire [9:0]               mouse_posx;
-    wire [8:0]               mouse_posy;
+    wire [9:0]               mouse_posy;
     wire [9:0]               mouse_width  = 50;
-    wire [8:0]               mouse_height = 50;
+    wire [9:0]               mouse_height = 50;
     wire [depth_bit - 1 : 0] mouse_addr = 34000;
 
 
@@ -241,9 +247,28 @@ parameter
         .vga_data(databg)
     );
 
+    wire [11:0] datao12;
+    wire [11:0] datao3;
+
     mixTwoFrame MIXER(
         datao1,
         datao2,
+        datao12
+    );
+    
+    objectMachine OBJ3(
+        .clk       (Div[0]),
+        .col       (col),
+        .row       (row),
+        .rstn      (rstn),
+        .moveclk   (moveclk),
+        .accclk    (accclk),
+        .outputdata(datao3)
+    );
+
+    mixTwoFrame MIXER123(
+        datao12,
+        datao3,
         datao
     );
 
@@ -252,6 +277,9 @@ parameter
         .datao(datao),
         .data(data)
     );
+
+
+    //////mouse part
 
     assign keyData = 0;
     assign keyReady = 0;
@@ -515,13 +543,15 @@ parameter
         mouseY    <= data2;
         if(hexstate == 3) begin
             mousevx <= {3'b0, tmpvx >> 1};
-            mousevy <= {2'b0, tmpvy >> 1};
+            mousevy <= {3'b0, tmpvy >> 1};
         end
         else begin
             mousevx <= 0;
             mousevy <= 0;
         end
     end
+
+    ////////////////////
 
     wire [31:0] hexdata0 = {data0, data1, data2, data3};
     wire [31:0] hexdata1 = {data4, data5, data6, data7};

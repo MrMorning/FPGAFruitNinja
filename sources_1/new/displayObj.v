@@ -25,11 +25,11 @@ module displayObj(
     input clk,
     input en,
     input [9:0] col,
-    input [8:0] row, //current displayed position
+    input [9:0] row, //current displayed position
     input [9:0] posx,
-    input [8:0] posy, //object position left top
+    input [9:0] posy, //object position left top
     input [9:0] width,
-    input [8:0] height, //object size
+    input [9:0] height, //object size
     input [memory_depth_base - 1: 0] memory_start_addr,
     input [3:0] scaleX,
     input [3:0] scaleY, //support the scaling of object
@@ -39,10 +39,10 @@ module displayObj(
 
 parameter 
     memory_depth = 1024,
-    memory_depth_base = 19;
+    memory_depth_base = 18;
 
     reg [9:0] relx = 0;
-    reg [8:0] rely = 0;
+    reg [9:0] rely = 0;
     reg [memory_depth_base - 1 : 0] reladdr;
     
     wire [11:0] wire_data;

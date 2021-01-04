@@ -23,6 +23,11 @@
             "name": "watermelon.jpeg",
             "width": 100,
             "height": 80
+        },
+        {
+            "name": "knife.png",
+            "width": 50,
+            "height": 50
         }
     ]
 }
