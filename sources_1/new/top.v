@@ -59,11 +59,11 @@ parameter
     wire rdn;
     wire [31:0] Div;
 
-    wire [9:0] mousevx;
-    wire [8:0] mousevy;
+    reg [9:0] mousevx;
+    reg [8:0] mousevy;
     wire mousedx;
     wire mousedy;
-    wire mousepush;
+    reg mousepush;
     wire decodeReady;
     
     wire rst;
@@ -293,7 +293,7 @@ parameter
         .count(mouseCount)
     );
 
-    wire [7:0] mouseX, mouseY;
+    reg [7:0] mouseX, mouseY;
 
     wire [7:0] debugX;
     wire [7:0] debugY;
@@ -307,32 +307,32 @@ parameter
     wire [3:0] debugState;
     wire [31:0] debugCount;
 
-    mouseDecoder MOUD(
-        .clk(clk),
-        .rst(~rstn),
-        .mouseReady(mouseReady),
-        .mouseData(mouseData),
-        .mouseState(mouseState),
-        .moveclk(moveclk),
+    // mouseDecoder MOUD(
+    //     .clk(clk),
+    //     .rst(~rstn),
+    //     .mouseReady(mouseReady),
+    //     .mouseData(mouseData),
+    //     .mouseState(mouseState),
+    //     .moveclk(moveclk),
 
-        .decodeReady(decodeReady),
-        .mousevx(mousevx),
-        .mousevy(mousevy),
-        .mousedx(mousedx),
-        .mousedy(mousedy),
-        .debugX(debugX),
-        .debugY(debugY),
-        .debugLeft(debugLeft),
-        .debugRight(debugRight),
-        .debugMiddle(debugMiddle),
-        .debugX8(debugX8),
-        .debugY8(debugY8),
-        .debugOX(debugOX),
-        .debugOY(debugOY),
-        .debugState(debugState),
-        .debugCount(debugCount),
-        .mousepush(mousepush)
-    );
+    //     .decodeReady(decodeReady),
+    //     .mousevx(mousevx),
+    //     .mousevy(mousevy),
+    //     .mousedx(mousedx),
+    //     .mousedy(mousedy),
+    //     .debugX(debugX),
+    //     .debugY(debugY),
+    //     .debugLeft(debugLeft),
+    //     .debugRight(debugRight),
+    //     .debugMiddle(debugMiddle),
+    //     .debugX8(debugX8),
+    //     .debugY8(debugY8),
+    //     .debugOX(debugOX),
+    //     .debugOY(debugOY),
+    //     .debugState(debugState),
+    //     .debugCount(debugCount),
+    //     .mousepush(mousepush)
+    // );
 
     // wire left_button;
     // wire right_button;
@@ -391,6 +391,8 @@ parameter
 
     reg [3:0] hexstate;
 
+    reg [31:0] clrcnt = 0;
+
     always @ (posedge clk) begin
         if(~rstn) begin
             hexstate <= 0;
@@ -402,6 +404,7 @@ parameter
             data5    <= 0;
             data6    <= 0;
             data7    <= 0;
+            clrcnt   <= 0;
         end
         else begin
             case(hexstate)
@@ -431,7 +434,16 @@ parameter
                         hexstate <= 1;
                         data0 <= mouseData;
                     end
-                    else hexstate <= hexstate;
+                    else begin 
+                        if(clrcnt == 99999999) begin
+                            clrcnt   <= 0;
+                            hexstate <= 0;
+                        end
+                        else begin
+                            clrcnt <= clrcnt + 1; 
+                            hexstate <= hexstate;
+                        end
+                    end
                 end
                 4: begin
                     if(mouseready_sample == 2'b01) begin
@@ -478,6 +490,29 @@ parameter
                     end
                 end
             endcase
+        end
+    end
+
+    wire [7:0] Xn = {1'b0,~mouseX[6:0]}+1;
+    wire [7:0] Yn = {1'b0,~mouseY[6:0]}+1;
+    wire [6:0] tmpvx, tmpvy;
+    assign mousedx = ~mouseX[7];
+    assign tmpvx = mouseX[7] ? Xn[6:0] : mouseX[6:0];
+    assign mousedy = ~mouseY[7];
+    assign tmpvy = mouseY[7] ? Yn[6:0] : mouseY[6:0];
+
+
+    always @ (posedge clk) begin
+        mousepush <= data0[0];
+        mouseX    <= data1;
+        mouseY    <= data2;
+        if(hexstate == 3) begin
+            mousevx <= {9'b0, |tmpvx};
+            mousevy <= {8'b0, |tmpvy};
+        end
+        else begin
+            mousevx <= 0;
+            mousevy <= 0;
         end
     end
 
