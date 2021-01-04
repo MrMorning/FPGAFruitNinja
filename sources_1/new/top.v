@@ -68,6 +68,9 @@ parameter
     
     wire rst;
     
+    wire rstn = SW[15];
+
+    
     assign rst = 0;
     
     clkdiv M3(
@@ -98,7 +101,6 @@ parameter
     wire [9:0] bgwidth = 100;
     wire [8:0] bgheight = 100;
     wire [depth_bit - 1:0] addr = 0;
-    wire rstn = SW[15];
 
     wire dx = 1;
     wire dy = 1;
@@ -108,6 +110,7 @@ parameter
 
     wire [9:0] o1_posx;
     wire [8:0] o1_posy;
+    wire       o1_oob;
     wire [9:0] o1_width = 100;
     wire [8:0] o1_height = 80;
     wire [depth_bit - 1 : 0] o1_addr = 18000;
@@ -115,20 +118,24 @@ parameter
     objectMotion OBJ1(
         .clk(Div[0]),
         .rstn(rstn),
+        .moveen(1),
         .moveclk(moveclk),
-        .keyReady(keyReady),
-        .keyData(keyData),
         .width(o1_width),
         .height(o1_height),
         .initposx(100),
-        .initposy(300),
-        .Tx(T0 >> 5),
-        .Ty(T0 >> 6),
-        .dx(1),
-        .dy(1),
+        .initposy(475),
+        .initvx(2),
+        .initvy(20),
+        .initdx(1),
+        .initdy(0),
+        .ax(0),
+        .ay(1),
+        .adx(2'b00),
+        .ady(2'b11),
 
         .posx(o1_posx),
-        .posy(o1_posy)
+        .posy(o1_posy),
+        .oob(o1_oob)
     );
 
     displayObj #(.memory_depth_base(depth_bit)) DISP(
@@ -146,11 +153,11 @@ parameter
         .vga_data(datao1)
     );
 
-    wire [9:0]               o2_posx;
-    wire [8:0]               o2_posy;
-    wire [9:0]               o2_width = 100;
-    wire [8:0]               o2_height = 80;
-    wire [depth_bit - 1 : 0] o2_addr = 26000;
+    wire [9:0]               mouse_posx;
+    wire [8:0]               mouse_posy;
+    wire [9:0]               mouse_width  = 50;
+    wire [8:0]               mouse_height = 50;
+    wire [depth_bit - 1 : 0] mouse_addr = 34000;
 
 
     // objectEngine OBJ2(
@@ -169,7 +176,7 @@ parameter
     //     .posy(o2_posy)
     // );
 
-    objectMouseMove OBJ2(
+    objectMouseMove OBJMOUSE(
         .clk(Div[0]),
         .rstn(rstn),
         .mouseReady(mouseReady),
@@ -179,13 +186,13 @@ parameter
         .dy(mousedy),
         .mousepush(mousepush),
         .moveclk(moveclk),
-        .width(o2_width),
-        .height(o2_height),
+        .width (mouse_width),
+        .height(mouse_height),
         .initposx(320),
         .initposy(240),
 
-        .posx(o2_posx),
-        .posy(o2_posy)
+        .posx(mouse_posx),
+        .posy(mouse_posy)
     );
 
     // wire [11:0] o2_12_posx;
@@ -205,16 +212,16 @@ parameter
     // assign o2_posx = o2_12_posx[9:0];
     // assign o2_posy = o2_12_posy[8:0];
 
-    displayObj #(.memory_depth_base(depth_bit)) DISO2(
+    displayObj #(.memory_depth_base(depth_bit)) DISMOUSE(
         .clk(Div[0]),
         .en(1),  
         .col(col),
         .row(row),
-        .posx             (o2_posx),
-        .posy             (o2_posy),
-        .width            (o2_width),
-        .height           (o2_height),
-        .memory_start_addr(o2_addr),
+        .posx             (mouse_posx),
+        .posy             (mouse_posy),
+        .width            (mouse_width),
+        .height           (mouse_height),
+        .memory_start_addr(mouse_addr),
         .scaleX(1),
         .scaleY(1),
         .vga_data(datao2)

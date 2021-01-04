@@ -54,6 +54,7 @@ module objectMouseMove(
 
     objectTransition OBJT(
         .clk(clk),
+        .en(1),
         .rst(~rstn),
         .moveclk(moveclk),
         .initPosX(initposx),

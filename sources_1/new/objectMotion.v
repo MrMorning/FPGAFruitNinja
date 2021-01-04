@@ -23,23 +23,26 @@
 module objectMotion(
     input clk,
     input rstn,
-    input keyReady,
-    input [7:0] keyData, 
+    input moveen,
     input moveclk,
     input [9:0] width,
     input [8:0] height,
     input [9:0] initposx,
     input [8:0] initposy,
-    input [31:0] Tx,
-    input [31:0] Ty,
-    input dx,
-    input dy,
+    input [9:0] initvx,
+    input [8:0] initvy,
+    input initdx,
+    input initdy,
+    input [9:0] ax,
+    input [8:0] ay,
+    input [1:0] adx,
+    input [1:0] ady,
     
     output [9:0] posx,
-    output [8:0] posy
+    output [8:0] posy,
+    output wire oob
     );
 
-    wire oob;
     wire flagx;
     wire flagy;
     reg tdx;
@@ -48,17 +51,16 @@ module objectMotion(
     wire [1:0] ndx;
     wire [1:0] ndy;
 
-    assign ndx[1] = 1;
-    assign ndy[1] = 1;
-    assign ndx[0] = tdx;
-    assign ndy[0] = tdy;
+    wire [9:0] vx;
+    wire [8:0] vy;
     
     objectTransition OBJT(
         .clk(clk),
+        .en(moveen),
         .rst(~rstn),
         .moveclk(moveclk),
-        .vx(1),
-        .vy(1),
+        .vx(vx),
+        .vy(vy),
         .dx(ndx),
         .dy(ndy),
         .initPosX(initposx),
@@ -68,18 +70,31 @@ module objectMotion(
         .posy(posy)
     );    
 
-    
-    initial begin
-        tdx = dx;
-        tdy = dy;
-    end
+    objectAccelerate OBJV(
+        .clk(clk),
+        .rst(~rstn),
+        .moveclk(moveclk),
+        .initvx(initvx),
+        .initvy(initvy),
+        .initvdx({1'b1, initdx}),
+        .initvdy({1'b1, initdy}),
+        .ax(ax),
+        .ay(ay),
+        .adx(adx),
+        .ady(ady),
+
+        .vx(vx),
+        .vy(vy),
+        .vdx(ndx),
+        .vdy(ndy)
+    );    
+
 
     reg [1:0] oob_sample;
     reg [1:0] key_sample;
 
     always @ (posedge clk) begin
         oob_sample <= {oob_sample[0], oob};
-        key_sample <= {key_sample[0], keyReady};
     end
 
     always @ (posedge clk) begin
@@ -88,15 +103,6 @@ module objectMotion(
                 tdx <= ~tdx;
             else 
                 tdy <= ~tdy;
-        end
-        if(key_sample == 2'b01) begin
-            case (keyData)
-                8'h1D: tdy <= 0; 
-                8'h1B: tdy <= 1;
-                8'h1C: tdx <= 0;
-                8'h23: tdx <= 1;
-                default: ;
-            endcase
         end
     end
 

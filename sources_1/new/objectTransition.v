@@ -22,6 +22,7 @@
 
 module objectTransition(
     input clk,
+    input en,
     input rst,
     input moveclk,
     input [9:0] initPosX,
@@ -44,6 +45,10 @@ module objectTransition(
         if(rst) begin
             posx <= initPosX;
             posy <= initPosY;
+        end
+        else if(!en) begin
+            posx <= posx;
+            posy <= posy;
         end
         else begin 
             if(moveclk) begin
