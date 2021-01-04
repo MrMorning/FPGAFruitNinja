@@ -133,6 +133,9 @@ always @ (posedge clk) begin
                 end
             end
             default: begin
+                if(mouse_sample == 2'b01) begin
+                    debugCount <= debugCount + 1;
+                end
                 state <= 0;
             end
         endcase
