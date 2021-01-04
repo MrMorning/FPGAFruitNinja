@@ -281,7 +281,7 @@ parameter
     // );
 
     ps2_keyboard PS2M(
-        .clk(Div[1]),
+        .clk(Div[0]),
         .clrn(rstn),
         .ps2_clk(PS2_clk),
         .ps2_data(PS2_data),
@@ -392,80 +392,93 @@ parameter
     reg [3:0] hexstate;
 
     always @ (posedge clk) begin
-        case(hexstate)
-            0: begin
-                if(mouseready_sample == 2'b01) begin
-                    hexstate <= 1;
-                    data0 <= mouseData;
+        if(~rstn) begin
+            hexstate <= 0;
+            data0    <= 0;
+            data1    <= 0;
+            data2    <= 0;
+            data3    <= 0;
+            data4    <= 0;
+            data5    <= 0;
+            data6    <= 0;
+            data7    <= 0;
+        end
+        else begin
+            case(hexstate)
+                0: begin
+                    if(mouseready_sample == 2'b01) begin
+                        hexstate <= 1;
+                        data0 <= mouseData;
+                    end
+                    else hexstate <= hexstate;
                 end
-                else hexstate <= hexstate;
-            end
-            1: begin
-                if(mouseready_sample == 2'b01) begin
-                    hexstate <= 2;
-                    data1 <= mouseData;
+                1: begin
+                    if(mouseready_sample == 2'b01) begin
+                        hexstate <= 2;
+                        data1 <= mouseData;
+                    end
+                    else hexstate <= hexstate;
+                end 
+                2: begin
+                    if(mouseready_sample == 2'b01) begin
+                        hexstate <= 3;
+                        data2 <= mouseData;
+                    end
+                    else hexstate <= hexstate;
                 end
-                else hexstate <= hexstate;
-            end 
-            2: begin
-                if(mouseready_sample == 2'b01) begin
-                    hexstate <= 3;
-                    data2 <= mouseData;
+                3: begin
+                    if(mouseready_sample == 2'b01) begin
+                        hexstate <= 1;
+                        data0 <= mouseData;
+                    end
+                    else hexstate <= hexstate;
                 end
-                else hexstate <= hexstate;
-            end
-            3: begin
-                if(mouseready_sample == 2'b01) begin
-                    hexstate <= 4;
-                    data3 <= mouseData;
+                4: begin
+                    if(mouseready_sample == 2'b01) begin
+                        hexstate <= 5;
+                        data4 <= mouseData;
+                    end
+                    else hexstate <= hexstate;
                 end
-                else hexstate <= hexstate;
-            end
-            4: begin
-                if(mouseready_sample == 2'b01) begin
-                    hexstate <= 5;
-                    data4 <= mouseData;
+                5: begin
+                    if(mouseready_sample == 2'b01) begin
+                        hexstate <= 6;
+                        data5 <= mouseData;
+                    end
+                    else hexstate <= hexstate;
                 end
-                else hexstate <= hexstate;
-            end
-            5: begin
-                if(mouseready_sample == 2'b01) begin
-                    hexstate <= 6;
-                    data5 <= mouseData;
+                6: begin
+                    if(mouseready_sample == 2'b01) begin
+                        hexstate <= 7;
+                        data6 <= mouseData;
+                    end
+                    else hexstate <= hexstate;
                 end
-                else hexstate <= hexstate;
-            end
-            6: begin
-                if(mouseready_sample == 2'b01) begin
-                    hexstate <= 7;
-                    data6 <= mouseData;
+                7: begin
+                    if(mouseready_sample == 2'b01) begin
+                        hexstate <= 8;
+                        data7 <= mouseData;
+                    end
+                    else hexstate <= hexstate;
                 end
-                else hexstate <= hexstate;
-            end
-            7: begin
-                if(mouseready_sample == 2'b01) begin
-                    hexstate <= 8;
-                    data7 <= mouseData;
+                8: begin
+                    if(~rstn) begin
+                        hexstate <= 0;
+                        data0    <= 0;
+                        data1    <= 0;
+                        data2    <= 0;
+                        data3    <= 0;
+                        data4    <= 0;
+                        data5    <= 0;
+                        data6    <= 0;
+                        data7    <= 0;
+                    end
+                    else begin
+                        hexstate <= hexstate;
+                    end
                 end
-                else hexstate <= hexstate;
-            end
-            8: begin
-                if(~rstn) begin
-                    hexstate <= 0;
-                    data0    <= 0;
-                    data1    <= 0;
-                    data2    <= 0;
-                    data3    <= 0;
-                    data4    <= 0;
-                    data5    <= 0;
-                    data6    <= 0;
-                    data7    <= 0;
-                end
-                else begin
-                    hexstate <= hexstate;
-                end
-            end
-        endcase
+            endcase
+        end
     end
 
     wire [31:0] hexdata0 = {data0, data1, data2, data3};

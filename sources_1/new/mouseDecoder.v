@@ -109,7 +109,8 @@ always @ (posedge clk) begin
             2: begin
                 if(mouse_sample == 2'b01) begin
                     Y[7:0] <= mouseData;
-                    state <= 3;
+                    // state <= 3;
+                    state <= state;
                     debugCount <= debugCount + 1;
                 end
                 else begin
@@ -125,7 +126,8 @@ always @ (posedge clk) begin
                     Y[8]       <= mouseData[5];
                     overflowX  <= mouseData[6];
                     overflowY  <= mouseData[7]; 
-                    state <= 1;    
+                    state <= 1;  
+                    // state <= state;  
                     debugCount <= debugCount + 1;
                 end
                 else begin
