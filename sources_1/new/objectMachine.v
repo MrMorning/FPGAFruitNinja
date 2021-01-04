@@ -23,6 +23,7 @@
 module objectMachine(
         input clk,
         input rstn,
+        input [4:0] seed,
         input [9:0] col,
         input [9:0] row,
         input moveclk,
@@ -32,12 +33,32 @@ module objectMachine(
 
     parameter depth_bit = 18;
 
-    wire [9 :0]          gen_initposx = 100;
+    wire [4:0] randn;
+    randomNumberGenerator RANDG(
+        .clk(clk),
+        .rstn(rstn),
+        .seed(seed),
+        .data(randn)
+    );
+
+    wire [2:0] selectfruit = randn[2:0];
+    wire [depth_bit - 1:0] fruit_addr [0:7];
+    assign fruit_addr[0] = 26000;
+    assign fruit_addr[1] = 18000;
+    assign fruit_addr[2] = 26000;
+    assign fruit_addr[3] = 18000;
+    assign fruit_addr[4] = 26000;
+    assign fruit_addr[5] = 18000;
+    assign fruit_addr[6] = 26000;
+    assign fruit_addr[7] = 18000;
+
+
+    wire [9 :0]          gen_initposx = (randn * 30) % 640;
     wire [9 :0]          gen_initposy = 375;
-    wire [depth_bit-1:0] gen_addr     = 26000;
-    wire [9 :0]          gen_initvx   = 4;
-    wire [9 :0]          gen_initvy   = 5;
-    wire                 gen_initdx   = 1;
+    wire [depth_bit-1:0] gen_addr     = fruit_addr[selectfruit];
+    wire [9 :0]          gen_initvx   = randn % 7;
+    wire [9 :0]          gen_initvy   = randn % 10;
+    wire                 gen_initdx   = randn[0];
 
     wire [9 :0]          posx;
     wire [9 :0]          posy;

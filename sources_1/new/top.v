@@ -107,57 +107,57 @@ parameter
     wire [9:0] bgheight = 100;
     wire [depth_bit - 1:0] addr = 0;
 
-    wire dx = 1;
-    wire dy = 1;
-    wire oob;
+//    wire dx = 1;
+//    wire dy = 1;
+//    wire oob;
     
     
 
-    wire [9:0] o1_posx;
-    wire [9:0] o1_posy;
-    wire       o1_oob;
-    wire [9:0] o1_width = 100;
-    wire [9:0] o1_height = 80;
-    wire [depth_bit - 1 : 0] o1_addr = 18000;
+//    wire [9:0] o1_posx;
+//    wire [9:0] o1_posy;
+//    wire       o1_oob;
+//    wire [9:0] o1_width = 100;
+//    wire [9:0] o1_height = 80;
+//    wire [depth_bit - 1 : 0] o1_addr = 18000;
 
-    objectMotion OBJ1(
-        .clk(Div[0]),
-        .rstn(rstn),
-        .moveen(1),
-        .moveclk(moveclk),
-        .accclk(accclk),
-        .width(o1_width),
-        .height(o1_height),
-        .initposx(100),
-        .initposy(475),
-        .initvx(2),
-        .initvy(20),
-        .initdx(1),
-        .initdy(0),
-        .ax(0),
-        .ay(1),
-        .adx(2'b00),
-        .ady(2'b11),
+//    objectMotion OBJ1(
+//        .clk(Div[0]),
+//        .rstn(rstn),
+//        .moveen(1),
+//        .moveclk(moveclk),
+//        .accclk(accclk),
+//        .width(o1_width),
+//        .height(o1_height),
+//        .initposx(100),
+//        .initposy(475),
+//        .initvx(2),
+//        .initvy(20),
+//        .initdx(1),
+//        .initdy(0),
+//        .ax(0),
+//        .ay(1),
+//        .adx(2'b00),
+//        .ady(2'b11),
 
-        .posx(o1_posx),
-        .posy(o1_posy),
-        .oob(o1_oob)
-    );
+//        .posx(o1_posx),
+//        .posy(o1_posy),
+//        .oob(o1_oob)
+//    );
 
-    displayObj #(.memory_depth_base(depth_bit)) DISP(
-        .clk(Div[0]),
-        .en(1),  
-        .col(col),
-        .row(row),
-        .posx(o1_posx),
-        .posy(o1_posy),
-        .width(o1_width),
-        .height(o1_height),
-        .memory_start_addr(o1_addr),
-        .scaleX(1),
-        .scaleY(1),
-        .vga_data(datao1)
-    );
+//    displayObj #(.memory_depth_base(depth_bit)) DISP(
+//        .clk(Div[0]),
+//        .en(1),  
+//        .col(col),
+//        .row(row),
+//        .posx(o1_posx),
+//        .posy(o1_posy),
+//        .width(o1_width),
+//        .height(o1_height),
+//        .memory_start_addr(o1_addr),
+//        .scaleX(1),
+//        .scaleY(1),
+//        .vga_data(datao1)
+//    );
 
     wire [9:0]               mouse_posx;
     wire [9:0]               mouse_posy;
@@ -250,6 +250,17 @@ parameter
     wire [11:0] datao12;
     wire [11:0] datao3;
 
+    objectMachine OBJ2(
+        .clk       (Div[0]),
+        .col       (col),
+        .row       (row),
+        .seed      (5'b10101),
+        .rstn      (rstn),
+        .moveclk   (moveclk),
+        .accclk    (accclk),
+        .outputdata(datao1)
+    );
+    
     mixTwoFrame MIXER(
         datao1,
         datao2,
@@ -259,6 +270,7 @@ parameter
     objectMachine OBJ3(
         .clk       (Div[0]),
         .col       (col),
+        .seed      (5'b11111),
         .row       (row),
         .rstn      (rstn),
         .moveclk   (moveclk),
