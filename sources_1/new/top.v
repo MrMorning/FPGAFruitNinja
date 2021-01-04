@@ -281,7 +281,7 @@ parameter
     // );
 
     ps2_keyboard PS2M(
-        .clk(Div[0]),
+        .clk(Div[1]),
         .clrn(rstn),
         .ps2_clk(PS2_clk),
         .ps2_data(PS2_data),
