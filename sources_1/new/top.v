@@ -435,7 +435,7 @@ parameter
                         data0 <= mouseData;
                     end
                     else begin 
-                        if(clrcnt == 99999999) begin
+                        if(clrcnt == 9999999) begin
                             clrcnt   <= 0;
                             hexstate <= 0;
                         end
@@ -507,8 +507,8 @@ parameter
         mouseX    <= data1;
         mouseY    <= data2;
         if(hexstate == 3) begin
-            mousevx <= {9'b0, |tmpvx};
-            mousevy <= {8'b0, |tmpvy};
+            mousevx <= {3'b0, tmpvx >> 1};
+            mousevy <= {2'b0, tmpvy >> 1};
         end
         else begin
             mousevx <= 0;
