@@ -28,6 +28,36 @@
             "name": "knife.png",
             "width": 50,
             "height": 50
+        },
+        {
+            "name": "orange.jpeg",
+            "width": 100,
+            "height": 80
+        },
+        {
+            "name": "peach.png",
+            "width": 100,
+            "height": 80
+        },
+        {
+            "name": "tomato.jpeg",
+            "width": 100,
+            "height": 80
+        },
+        {
+            "name": "mango.jpg",
+            "width": 100,
+            "height": 80
+        },
+        {
+            "name": "pear.jpeg",
+            "width": 100,
+            "height": 80
+        },
+        {
+            "name": "pineapple.jpg",
+            "width": 100,
+            "height": 80
         }
     ]
 }
