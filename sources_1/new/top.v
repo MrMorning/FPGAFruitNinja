@@ -269,6 +269,7 @@ parameter
     
     objectMachine OBJ3(
         .clk       (Div[0]),
+        .explode   (SW[1]),
         .col       (col),
         .seed      (5'b11101),
         .row       (row),
