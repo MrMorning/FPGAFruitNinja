@@ -45,12 +45,12 @@ module objectMachine(
     wire [depth_bit - 1:0] fruit_addr [0:7];
     assign fruit_addr[0] = 26000;
     assign fruit_addr[1] = 18000;
-    assign fruit_addr[2] = 26000;
-    assign fruit_addr[3] = 18000;
-    assign fruit_addr[4] = 26000;
-    assign fruit_addr[5] = 18000;
-    assign fruit_addr[6] = 26000;
-    assign fruit_addr[7] = 18000;
+    assign fruit_addr[2] = 36500;
+    assign fruit_addr[3] = 44500;
+    assign fruit_addr[4] = 52500;
+    assign fruit_addr[5] = 60500;
+    assign fruit_addr[6] = 68500;
+    assign fruit_addr[7] = 76500;
 
 
     wire [9 :0]          gen_initposx = (randn * 30) % 640;
@@ -59,6 +59,8 @@ module objectMachine(
     wire [9 :0]          gen_initvx   = randn % 7;
     wire [9 :0]          gen_initvy   = randn % 10;
     wire                 gen_initdx   = randn[0];
+
+    wire                 random_restart = randn[0];
 
     wire [9 :0]          posx;
     wire [9 :0]          posy;
@@ -109,7 +111,12 @@ module objectMachine(
                     end
                 end
                 3: begin //TODO: 随机经过一段时间后初始化
-                    state <= 0;
+                    if(random_restart) begin
+                        state <= 0;
+                    end
+                    else begin
+                        state <= state;
+                    end
                 end
                 default: begin
                     state <= 0;
@@ -130,7 +137,7 @@ module objectMachine(
         .initposy (initposy),
         .initvx   (initvx),
         .initvy   (initvy),
-        .initdx   (1),
+        .initdx   (initdx),
         .initdy   (0),
         .ax       (0),
         .ay       (1),

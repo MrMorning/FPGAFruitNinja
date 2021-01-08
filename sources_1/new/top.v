@@ -254,7 +254,7 @@ parameter
         .clk       (Div[0]),
         .col       (col),
         .row       (row),
-        .seed      (5'b10101),
+        .seed      (5'b10111),
         .rstn      (rstn),
         .moveclk   (moveclk),
         .accclk    (accclk),
@@ -270,7 +270,7 @@ parameter
     objectMachine OBJ3(
         .clk       (Div[0]),
         .col       (col),
-        .seed      (5'b11111),
+        .seed      (5'b11101),
         .row       (row),
         .rstn      (rstn),
         .moveclk   (moveclk),
