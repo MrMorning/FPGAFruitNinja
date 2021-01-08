@@ -250,15 +250,23 @@ parameter
     wire [11:0] datao12;
     wire [11:0] datao3;
 
+    wire [31:0] score1;
+    wire [31:0] score2;
+    wire [31:0] score = score1 + score2;
+
     objectMachine OBJ2(
         .clk       (Div[0]),
         .col       (col),
         .row       (row),
+        .mousex    (mouse_posx),
+        .mousey    (mouse_posy),
+        .mousepush (mousepush),
         .seed      (5'b10111),
         .rstn      (rstn),
         .moveclk   (moveclk),
         .accclk    (accclk),
-        .outputdata(datao1)
+        .outputdata(datao1),
+        .score     (score1)
     );
     
     mixTwoFrame MIXER(
@@ -272,10 +280,14 @@ parameter
         .col       (col),
         .seed      (5'b11101),
         .row       (row),
+        .mousex    (mouse_posx),
+        .mousey    (mouse_posy),
+        .mousepush (mousepush),
         .rstn      (rstn),
         .moveclk   (moveclk),
         .accclk    (accclk),
-        .outputdata(datao3)
+        .outputdata(datao3),
+        .score     (score2)
     );
 
     mixTwoFrame MIXER123(
