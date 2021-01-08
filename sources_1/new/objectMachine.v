@@ -23,7 +23,7 @@
 module objectMachine(
         input clk,
         input rstn,
-        input [4:0] seed,
+        input [31:0] seed,
         input [9:0] col,
         input [9:0] row,
         input [9:0] mousex,
@@ -37,12 +37,17 @@ module objectMachine(
 
     parameter depth_bit = 18;
 
-    wire [4:0] randn;
+    reg [31:0] new_seed;
+    wire [31:0] randn;
+    reg random_rstn;
     randomNumberGenerator RANDG(
-        .clk(clk),
-        .rstn(rstn),
-        .seed(seed),
-        .data(randn)
+        .i_Clk(clk),
+        .i_Enable(1),
+
+        .i_Seed_DV(~(rstn & random_rstn)),
+        .i_Seed_Data(new_seed),
+
+        .o_LFSR_Data(randn)
     );
 
     reg explode;
@@ -65,14 +70,14 @@ module objectMachine(
     assign fruit_addr[6] = 26000;
     assign fruit_addr[7] = 18000;
 
-    wire [9 :0]          gen_initposx = (randn * 30) % 640;
+    wire [9 :0]          gen_initposx = (randn[9:0]) % 640;
     wire [9 :0]          gen_initposy = 375;
     wire [depth_bit-1:0] gen_addr     = fruit_addr[selectfruit];
-    wire [9 :0]          gen_initvx   = randn % 7;
-    wire [9 :0]          gen_initvy   = randn % 10;
+    wire [9 :0]          gen_initvx   = 3 + randn[1:0];
+    wire [9 :0]          gen_initvy   = 5 + randn[1:0];
     wire                 gen_initdx   = randn[0];
 
-    wire                 random_restart = randn[0];
+    wire                 random_restart = randn;
 
     wire [9 :0]          posx;
     wire [9 :0]          posy;
@@ -111,10 +116,13 @@ module objectMachine(
             move  <= 1;
             move2 <= 1;
             score <= 0;
+            new_seed <= seed;
         end
         else begin
             case(state)
                 0: begin
+                    move      <= 1;
+                    move2     <= 1;
                     initposx  <= gen_initposx;
                     initposx2 <= gen_initposx + width1;
                     initposy  <= gen_initposy;
@@ -134,23 +142,27 @@ module objectMachine(
                     
                 end
                 2: begin
-                    if(oob || oob2) begin
+                    if(oob && oob2) begin
+                        move  <= 0;
+                        move2 <= 0; 
                         state <= 5;
                     end
                     else if(explode) begin
-                        score     <= score + 1;
-                        initposx  <= posx;
-                        initposx2 <= posx2;
-                        initposy  <= posy;
-                        initposy2 <= posy2;
-                        addr      <= addr;
-                        initvx    <= 1;
-                        initvx2   <= 1;
-                        initvy    <= 0;
-                        initvy2   <= 0;
-                        initdx    <= 0;
-                        initdx2   <= 1;
-                        local_rstn <= 0;   
+                        score       <= score + 1;
+                        new_seed    <= new_seed + 1;
+                        random_rstn <= 0;
+                        initposx    <= posx;
+                        initposx2   <= posx2;
+                        initposy    <= posy;
+                        initposy2   <= posy2;
+                        addr        <= addr;
+                        initvx      <= 1;
+                        initvx2     <= 1;
+                        initvy      <= 0;
+                        initvy2     <= 0;
+                        initdx      <= 0;
+                        initdx2     <= 1;
+                        local_rstn  <= 0;   
                         state <= 3;
                     end
                     else begin
@@ -158,11 +170,22 @@ module objectMachine(
                     end
                 end
                 3: begin
-                   local_rstn <= 1;
-                   state      <= 4; 
+                   local_rstn  <= 1;
+                   random_rstn <= 1;
+                   state       <= 4; 
                 end
                 4: begin
                     if(oob || oob2) begin
+                        if(oob && oob2) begin
+                            move <= 0;
+                            move2<= 0;
+                        end
+                        else if(oob) begin
+                            move  <= 0;
+                        end
+                        else begin
+                            move2 <= 0;
+                        end
                         state <= 5;
                     end
                     else begin
@@ -170,12 +193,25 @@ module objectMachine(
                     end
                 end
                 5: begin //TODO: 随机经过一段时间后初始化
-                    if(random_restart && oob && oob2) begin
-                        state <= 0;
-                    end
-                    else begin
-                        state <= state;
-                    end
+                    case({oob, oob2})
+                        2'b11: begin
+                            if(random_restart) state <= 0;
+                            else state <= state;
+                        end
+                        2'b10: begin
+                            move <= 0;
+                            state <= state;
+                        end
+                        2'b01: begin
+                            move2 <= 0;
+                            state <= state;
+                        end
+                        2'b00: begin
+                            move <= 0;
+                            move2 <= 0;
+                            state <= 0;
+                        end
+                    endcase
                 end
                 6: begin
                     local_rstn <= 1;
@@ -205,7 +241,7 @@ module objectMachine(
         .moveen   (move),
         .moveclk  (moveclk),
         .accclk   (accclk),
-        .width    (width),
+        .width    (width1),
         .height   (height),
         .initposx (initposx),
         .initposy (initposy),
@@ -228,7 +264,7 @@ module objectMachine(
         .moveen   (move2),
         .moveclk  (moveclk),
         .accclk   (accclk),
-        .width    (width), //NOTE THAT HERE MAY INDUCE BUG IN OOB!
+        .width    (width2), //NOTE THAT HERE MAY INDUCE BUG IN OOB!
         .height   (height),
         .initposx (initposx2),
         .initposy (initposy2),

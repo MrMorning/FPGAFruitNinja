@@ -60,7 +60,7 @@ parameter
             vga_data <= 12'h000;
         end
         else if(en1 && col >= posx1 && col < posx1 + width1 && row >= posy1 && row < posy1 + height) begin
-            reladdr1 <= (row - posy1) * width + (col - posx1);
+            reladdr1 <= (row - posy1) * width + (col - posx1 - 1);
             vga_data <= wire_data1; 
         end
         else if(en2 && col >= posx2 && col < posx2 + width2 && row >= posy2 && row < posy2 + height) begin

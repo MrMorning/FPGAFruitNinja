@@ -82,11 +82,11 @@ parameter
 
     wire moveclk;
     clock_100ms C100(
-        .clk(Div[0]),
+        .clk(Div[1]),
         .clk_100ms(moveclk)
     );
     clock_acc CACC(
-        .clk(Div[0]),
+        .clk(Div[1]),
         .clk_acc(accclk)
     );
     
@@ -261,7 +261,7 @@ parameter
         .mousex    (mouse_posx),
         .mousey    (mouse_posy),
         .mousepush (mousepush),
-        .seed      (5'b10111),
+        .seed      (32'h5A5A5A5A),
         .rstn      (rstn),
         .moveclk   (moveclk),
         .accclk    (accclk),
@@ -278,7 +278,7 @@ parameter
     objectMachine OBJ3(
         .clk       (Div[0]),
         .col       (col),
-        .seed      (5'b11101),
+        .seed      (32'hA5A5A5A5),
         .row       (row),
         .mousex    (mouse_posx),
         .mousey    (mouse_posy),
@@ -431,9 +431,7 @@ parameter
     end
 
     always @ (posedge clk) begin
-        if(mousepush_sample == 2'b01) begin
-            bgen <= ~bgen;     
-        end
+        bgen <= 1;
     end
 
     wire [31:0] hexdata_test = 32'hA5A5A5A5;
@@ -577,8 +575,8 @@ parameter
 
     ////////////////////
 
-    wire [31:0] hexdata0 = {data0, data1, data2, data3};
-    wire [31:0] hexdata1 = {data4, data5, data6, data7};
+    wire [31:0] hexdata0 = score;
+    wire [31:0] hexdata1 = {data0, data1, data2, data3};
     wire [31:0] hexdata2 = {3'b0, mousepush, debugState,debugY, debugX, debugOY, debugOX, debugY8, debugX8, 1'b0, debugMiddle, debugRight, debugLeft};
     wire [31:0] hexdata3 = {debugCount};
 
