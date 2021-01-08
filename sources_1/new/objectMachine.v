@@ -23,13 +23,16 @@
 module objectMachine(
         input clk,
         input rstn,
-        input explode,
         input [4:0] seed,
         input [9:0] col,
         input [9:0] row,
+        input [9:0] mousex,
+        input [9:0] mousey,
+        input mousepush,
         input moveclk,
         input accclk,
-        output wire [11:0] outputdata
+        output wire [11:0] outputdata,
+        output reg [31:0] score
     );
 
     parameter depth_bit = 18;
@@ -42,6 +45,7 @@ module objectMachine(
         .data(randn)
     );
 
+    reg explode;
     wire [2:0] selectfruit = randn[2:0];
     wire [depth_bit - 1:0] fruit_addr [0:7];
     // assign fruit_addr[0] = 26000;
@@ -106,6 +110,7 @@ module objectMachine(
             state <= 0;
             move  <= 1;
             move2 <= 1;
+            score <= 0;
         end
         else begin
             case(state)
@@ -133,6 +138,7 @@ module objectMachine(
                         state <= 5;
                     end
                     else if(explode) begin
+                        score     <= score + 1;
                         initposx  <= posx;
                         initposx2 <= posx2;
                         initposy  <= posy;
@@ -179,6 +185,17 @@ module objectMachine(
                     state <= 0;
                 end
             endcase
+        end
+    end
+
+    always @ (posedge clk) begin
+        if(mousex >= posx && mousex <= posx + width &&
+           mousey >= posy && mousey <= posy + height &&
+           mousepush) begin
+               explode <= 1;
+           end
+        else begin
+            explode <= 0;
         end
     end
 
