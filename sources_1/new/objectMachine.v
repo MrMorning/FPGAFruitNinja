@@ -63,7 +63,7 @@ module objectMachine(
     // assign fruit_addr[7] = 76500;
     assign fruit_addr[0] = 26000;
     assign fruit_addr[1] = 18000;
-    assign fruit_addr[2] = 26000;
+    assign fruit_addr[2] = 90900;
     assign fruit_addr[3] = 18000;
     assign fruit_addr[4] = 26000;
     assign fruit_addr[5] = 18000;
@@ -73,8 +73,8 @@ module objectMachine(
     wire [9 :0]          gen_initposx = (randn[9:0]) % 640;
     wire [9 :0]          gen_initposy = 375;
     wire [depth_bit-1:0] gen_addr     = fruit_addr[selectfruit];
-    wire [9 :0]          gen_initvx   = 3 + randn[1:0];
-    wire [9 :0]          gen_initvy   = 5 + randn[1:0];
+    wire [9 :0]          gen_initvx   = 0 + randn[1:0];
+    wire [9 :0]          gen_initvy   = 7 + randn[1:0];
     wire                 gen_initdx   = randn[0];
 
     wire                 random_restart = randn;
@@ -148,7 +148,17 @@ module objectMachine(
                         state <= 5;
                     end
                     else if(explode) begin
-                        score       <= score + 1;
+                        if(addr != 90900) begin
+                            score       <= score + 1;    
+                        end
+                        else begin
+                            if(score > 10) begin
+                                score   <= score - 10;
+                            end
+                            else begin
+                                score   <= 0;
+                            end
+                        end
                         new_seed    <= new_seed + 1;
                         random_rstn <= 0;
                         initposx    <= posx;
