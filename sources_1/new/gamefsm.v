@@ -24,6 +24,7 @@ module gamefsm(
         input clk,
         input rstn,
         input leftpush,
+        input middlepush,
         input rightpush,
         
         output reg [2:0] state,
@@ -57,13 +58,23 @@ module gamefsm(
                     end
                 end
                 1: begin
-                    if(count == 8'd59) begin
-                        state <= 2;
+                    if(!middlepush && !rightpush) begin
+                        if(count == 8'd59) begin
+                            state <= 2;
+                            count <= 0;
+                        end else begin
+                            state <= state;
+                            if(clk_1s) count <= count + 1;
+                            else    count <= count;
+                        end
+                    end
+                    else if(middlepush) begin
                         count <= 0;
-                    end else begin
-                        state <= state;
-                        if(clk_1s) count <= count + 1;
-                        else    count <= count;
+                        state <= 4;
+                    end
+                    else begin
+                        count <= 0;
+                        state <= 2;
                     end
                 end
                 2: begin
@@ -74,6 +85,14 @@ module gamefsm(
                         state <= state;
                         if(clk_1s) count <= count + 1;
                         else    count <= count;
+                    end
+                end
+                4: begin
+                    if(leftpush) begin
+                        state <= 1;
+                    end
+                    else begin
+                        state <= state;
                     end
                 end
             endcase

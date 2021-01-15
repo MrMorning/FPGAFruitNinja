@@ -25,6 +25,8 @@ module top(
     // input rstn,
     input PS2_clk,
     input PS2_data,
+    // input PS2_clk2,
+    // input PS2_data2,
     input [15:0] SW,
     output [3:0] VGA_R,
     output [3:0] VGA_G,
@@ -82,12 +84,14 @@ parameter
 
     wire [2:0] gameState;
     reg rightpush;
+    reg middlepush;
 
     reg gamerst;
     reg logoen;
     reg gameoveren;
 
     wire [7:0] timer;
+    reg gamepausen;
     reg [7:0] timerdisp;
     wire [7:0] timerdisp2;
     reg [31:0] seed1;
@@ -101,6 +105,7 @@ parameter
         .clk(clk),
         .rstn(rstn),
         .leftpush(mousepush),
+        .middlepush(middlepush),
         .rightpush(rightpush),
 
         .state(gameState),
@@ -114,6 +119,7 @@ parameter
                 logoen  <= 1;
                 gameoveren <= 0;
                 timerdisp <= 60;
+                gamepausen <= 1;
             end
             1: begin
                 seed1   <= 32'hFFFFFFFF-Div;
@@ -122,12 +128,17 @@ parameter
                 logoen  <= 0;
                 gameoveren <= 0;
                 timerdisp <= 60 - timer;
+                gamepausen <= 1;
             end
             2: begin
-                gamerst <= 1;
+                gamerst <= 0;
                 gameoveren <= 1;
                 logoen <= 0;
                 timerdisp <= 0;
+                gamepausen <= 1;
+            end
+            4: begin
+                gamepausen <= 0;
             end
         endcase
     end
@@ -338,13 +349,14 @@ parameter
 
     wire [31:0] score1;
     wire [31:0] score2;
+    reg [31:0] highest_score;
     wire [31:0] score = score1 + score2;
 
     wire [7:0] scoredisp;
     HEX2DEC h2d(score, scoredisp);
 
     objectMachine OBJ2(
-        .clk       (Div[0]),
+        .clk       (Div[0] & gamepausen),
         .col       (col),
         .row       (row),
         .mousex    (mouse_posx),
@@ -372,7 +384,7 @@ parameter
     );
     
     objectMachine OBJ3(
-        .clk       (Div[0]),
+        .clk       (Div[0]  & gamepausen),
         .col       (col),
         .seed      (seed2),
         .row       (row),
@@ -528,6 +540,9 @@ parameter
 
     always @ (posedge clk) begin
         bgen <= 1;
+        if(score > highest_score) begin
+            highest_score <= score;
+        end
     end
 
     wire [31:0] hexdata_test = 32'hA5A5A5A5;
@@ -657,7 +672,8 @@ parameter
 
     always @ (posedge clk) begin
         mousepush <= data0[0];
-        rightpush <= data0[2];
+        rightpush <= data0[1];
+        middlepush <= data0[2];
         mouseX    <= data1;
         mouseY    <= data2;
         if(hexstate == 3) begin
@@ -672,7 +688,10 @@ parameter
 
     ////////////////////
 
-    wire [31:0] hexdata0 = {timerdisp2, 16'h0, scoredisp};
+    wire [7:0] dispHS;
+    HEX2DEC H2DHIGH(highest_score, dispHS);
+
+    wire [31:0] hexdata0 = {timerdisp2, 4'h0, dispHS, 4'h0, scoredisp};
     wire [31:0] hexdata1 = {data0, data1, data2, data3};
     wire [31:0] hexdata2 = {3'b0, mousepush, debugState,debugY, debugX, debugOY, debugOX, debugY8, debugX8, 1'b0, debugMiddle, debugRight, debugLeft};
     wire [31:0] hexdata3 = {debugCount};
