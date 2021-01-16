@@ -25,6 +25,8 @@ module top(
     // input rstn,
     input PS2_clk,
     input PS2_data,
+    // input PS2_clk2,
+    // input PS2_data2,
     input [15:0] SW,
     output [3:0] VGA_R,
     output [3:0] VGA_G,
@@ -80,13 +82,74 @@ parameter
         .clkdiv(Div)
     ); 
 
+    wire [2:0] gameState;
+    reg rightpush;
+    reg middlepush;
+
+    reg gamerst;
+    reg logoen;
+    reg gameoveren;
+
+    wire [7:0] timer;
+    reg gamepausen;
+    reg [7:0] timerdisp;
+    wire [7:0] timerdisp2;
+    reg [31:0] seed1;
+    reg [31:0] seed2;
+
+    HEX2DEC h2d2(
+        {24'h0, timerdisp}, timerdisp2
+    );
+
+    gamefsm GFSM(
+        .clk(clk),
+        .rstn(rstn),
+        .leftpush(mousepush),
+        .middlepush(middlepush),
+        .rightpush(rightpush),
+
+        .state(gameState),
+        .timer(timer)
+    );
+
+    always @ (posedge clk) begin
+        case(gameState)
+            0: begin
+                gamerst <= 1;
+                logoen  <= 1;
+                gameoveren <= 0;
+                timerdisp <= 60;
+                gamepausen <= 1;
+            end
+            1: begin
+                seed1   <= 32'hFFFFFFFF-Div;
+                seed2   <= Div << 4;
+                gamerst <= 0;
+                logoen  <= 0;
+                gameoveren <= 0;
+                timerdisp <= 60 - timer;
+                gamepausen <= 1;
+            end
+            2: begin
+                gamerst <= 0;
+                gameoveren <= 1;
+                logoen <= 0;
+                timerdisp <= 0;
+                gamepausen <= 1;
+            end
+            4: begin
+                gamepausen <= 0;
+            end
+        endcase
+    end
+
     wire moveclk;
     clock_100ms C100(
-        .clk(Div[0]),
+        .clk(Div[1]),
         .clk_100ms(moveclk)
     );
     clock_acc CACC(
-        .clk(Div[0]),
+        .clk(Div[1]),
         .clk_acc(accclk)
     );
     
@@ -232,7 +295,41 @@ parameter
         .scaleY(1),
         .vga_data(datao2)
     );
+
+    wire [11:0] datalogo1;
+    displayObj #(.memory_depth_base(depth_bit)) DISLOGO(
+        .clk(Div[0]),
+        .en(logoen),
+        .col(col),
+        .row(row),
+        .posx              (150),
+        .posy              (100),
+        .width             (200),
+        .height            (200),
+        .memory_start_addr (36500),
+        .scaleX(1),
+        .scaleY(1),
+        .vga_data(datalogo1)
+    );
+
+    wire [11:0] datalogo2;
+
+    displayObj #(.memory_depth_base(depth_bit)) DISGAMEOVER(
+        .clk(Div[0]),
+        .en(gameoveren),
+        .col(col),
+        .row(row),
+        .posx              (150),
+        .posy              (100),
+        .width             (120),
+        .height            (120),
+        .memory_start_addr (76500),
+        .scaleX(1),
+        .scaleY(1),
+        .vga_data(datalogo2)
+    );
     
+    wire [11:0] datalogo = datalogo1 | datalogo2;
        
     reg bgen = 0;
     displayBg #(.memory_depth_base(depth_bit)) DISB(
@@ -252,38 +349,49 @@ parameter
 
     wire [31:0] score1;
     wire [31:0] score2;
+    reg [31:0] highest_score;
     wire [31:0] score = score1 + score2;
 
+    wire [7:0] scoredisp;
+    HEX2DEC h2d(score, scoredisp);
+
     objectMachine OBJ2(
-        .clk       (Div[0]),
+        .clk       (Div[0] & gamepausen),
         .col       (col),
         .row       (row),
         .mousex    (mouse_posx),
         .mousey    (mouse_posy),
         .mousepush (mousepush),
-        .seed      (5'b10111),
-        .rstn      (rstn),
+        .seed      (seed1),
+        .rstn      (rstn & ~gamerst),
         .moveclk   (moveclk),
         .accclk    (accclk),
         .outputdata(datao1),
         .score     (score1)
     );
     
+    wire [11:0] datao12temp;
     mixTwoFrame MIXER(
         datao1,
         datao2,
+        datao12temp
+    );
+
+    mixTwoFrame MIXERLOGO(
+        datao12temp,
+        datalogo,
         datao12
     );
     
     objectMachine OBJ3(
-        .clk       (Div[0]),
+        .clk       (Div[0]  & gamepausen),
         .col       (col),
-        .seed      (5'b11101),
+        .seed      (seed2),
         .row       (row),
         .mousex    (mouse_posx),
         .mousey    (mouse_posy),
         .mousepush (mousepush),
-        .rstn      (rstn),
+        .rstn      (rstn & ~gamerst),
         .moveclk   (moveclk),
         .accclk    (accclk),
         .outputdata(datao3),
@@ -431,8 +539,9 @@ parameter
     end
 
     always @ (posedge clk) begin
-        if(mousepush_sample == 2'b01) begin
-            bgen <= ~bgen;     
+        bgen <= 1;
+        if(score > highest_score) begin
+            highest_score <= score;
         end
     end
 
@@ -563,6 +672,8 @@ parameter
 
     always @ (posedge clk) begin
         mousepush <= data0[0];
+        rightpush <= data0[1];
+        middlepush <= data0[2];
         mouseX    <= data1;
         mouseY    <= data2;
         if(hexstate == 3) begin
@@ -577,8 +688,11 @@ parameter
 
     ////////////////////
 
-    wire [31:0] hexdata0 = {data0, data1, data2, data3};
-    wire [31:0] hexdata1 = {data4, data5, data6, data7};
+    wire [7:0] dispHS;
+    HEX2DEC H2DHIGH(highest_score, dispHS);
+
+    wire [31:0] hexdata0 = {timerdisp2, 4'h0, dispHS, 4'h0, scoredisp};
+    wire [31:0] hexdata1 = {data0, data1, data2, data3};
     wire [31:0] hexdata2 = {3'b0, mousepush, debugState,debugY, debugX, debugOY, debugOX, debugY8, debugX8, 1'b0, debugMiddle, debugRight, debugLeft};
     wire [31:0] hexdata3 = {debugCount};
 
